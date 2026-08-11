@@ -580,7 +580,7 @@ Part 3 — Deploy from Helm chart
 **Part 1 — Deploy from image**
 ```bash
 oc new-project deploy-demo
-oc new-app --image docker.io/bitnami/nginx --allow-missing-images
+oc new-app --image=docker.io/bitnami/nginx --name=myapp --allow-missing-images
 oc get pods -w
 ```
 
