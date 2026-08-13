@@ -739,7 +739,7 @@ spec:
     spec:
       containers:
       - name: httpd
-        image: docker.io/httpd:2.4
+        image: bitnamix/nginx-unprivileged:stable
 ```
 
 ```bash
@@ -751,7 +751,7 @@ oc get pods -w
 oc rollout status deployment httpd-deployment
 
 # Step 5 — Update the image
-oc set image deployment/httpd-deployment httpd=docker.io/httpd:2.4-alpine
+oc set image deployment/httpd-deployment httpd=nginxinc/nginx-unprivileged:alpine
 
 # Step 6 — Monitor and verify update
 oc rollout status deployment httpd-deployment
