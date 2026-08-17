@@ -906,6 +906,11 @@ oc delete rs my-replicaset
 ```bash
 vi label-pod.yaml
 ```
+oc run label-pod \
+  --image=nginx \
+  --labels="app=my-app,environment=production,tier=frontend" \
+  --dry-run=client -o yaml > label-pod.yaml
+
 
 ```yaml
 apiVersion: v1
