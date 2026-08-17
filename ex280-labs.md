@@ -987,6 +987,7 @@ oc describe pod my-labeled-pod | grep Labels
 **Objective:** Deploy an application, expose it as a service and create a route for external access
 
 **Task details:**
+
 1. Create a new project called httpdemo
 2. Deploy an application named my-http-app using image docker.io/bitnami/nginx
 3. Verify the pods are running
@@ -1004,22 +1005,21 @@ oc describe pod my-labeled-pod | grep Labels
 oc new-project httpdemo
 
 # Step 2 — Deploy the application
-oc new-app --name=my-http-app --image=docker.io/bitnami/nginx
+oc create deployment my-http-app --image=docker.io/bitnami/nginx
 
 # Step 3 — Verify pods
 oc get pods -w
 
-# Step 4 — Expose as service
+# Step 4 — Expose the application as a service
 oc expose deployment my-http-app --port=8080
 
-# Step 5 — Verify service
+# Step 5 — Verify the service
 oc get service
 
 # Step 6 — Create a route
-oc expose service my-http-app \
-  --hostname=my-app.httpdemo.apps-crc.testing
+oc expose service my-http-app --hostname=my-app.httpdemo.apps-crc.testing
 
-# Step 7 — Verify route
+# Step 7 — Verify the route
 oc get route
 
 # Step 8 — Describe the route
@@ -1027,4 +1027,3 @@ oc describe route my-http-app
 
 # Step 9 — Test the route
 curl http://my-app.httpdemo.apps-crc.testing
-```
