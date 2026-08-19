@@ -16,6 +16,11 @@
 - [Lab 12 — ReplicaSets](#lab-12--replicasets)
 - [Lab 13 — Labels and Selectors](#lab-13--labels-and-selectors)
 - [Lab 14 — Configure Services](#lab-14--configure-services)
+- [Lab 15 — Manage Secrets](#lab-15--manage-secrets)
+- [Lab 16 — Manage Configuration Maps](#lab-16--manage-configuration-maps)
+- [Lab 17 — Persistent Storage](#lab-17--persistent-storage)
+- [Lab 18 — Storage Classes](#lab-18--storage-classes)
+- [Lab 19 — StatefulSets](#lab-19--statefulsets)
 
 ---
 
@@ -1027,9 +1032,9 @@ oc describe route my-http-app
 
 # Step 9 — Test the route
 curl http://my-app.httpdemo.apps-crc.testing
+```
 
-[Lab 15 — Manage Secrets](#lab-15--manage-secrets)
-
+---
 ## Lab 15 — Manage Secrets
 
 **Objective:** Create, inspect and use OpenShift Secrets to securely manage sensitive application data
@@ -1050,6 +1055,740 @@ curl http://my-app.httpdemo.apps-crc.testing
 
 ### Solution
 
-**Step 1 — Create the project**
 ```bash
+# Step 1 — Create the project
 oc new-project secrets-demo
+
+# Step 2 — Create a generic Secret
+oc create secret generic my-secret \
+  --from-literal=username=myuser \
+  --from-literal=password=mypassword
+
+# Step 3 — Verify the Secret
+oc get secret my-secret
+oc describe secret my-secret
+
+# Step 4 — Create a Secret from files
+echo -n 'myuser' > username.txt
+echo -n 'mypassword' > password.txt
+
+oc create secret generic my-file-secret \
+  --from-file=username=username.txt \
+  --from-file=password=password.txt
+
+# Verify
+oc describe secret my-file-secret
+
+# Step 5 — Create a Pod using Secret environment variables
+vi secret-pod.yaml
+```
+
+`secret-pod.yaml`:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secret-pod
+spec:
+  containers:
+  - name: secret-container
+    image: busybox
+    command:
+    - sh
+    - -c
+    - "echo Username: $USERNAME; echo Password: $PASSWORD"
+    env:
+    - name: USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: my-secret
+          key: username
+    - name: PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: my-secret
+          key: password
+```
+
+```bash
+# Create the Pod
+oc apply -f secret-pod.yaml
+
+# Step 6 — Verify the Secret values
+oc get pod secret-pod
+oc logs secret-pod
+
+# Step 7 — Create a Pod with the Secret mounted as files
+vi secret-volume-pod.yaml
+```
+
+`secret-volume-pod.yaml`:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secret-volume-pod
+spec:
+  containers:
+  - name: secret-container
+    image: busybox
+    command:
+    - sh
+    - -c
+    - "cat /etc/secrets/username; echo; cat /etc/secrets/password"
+    volumeMounts:
+    - name: secret-volume
+      mountPath: /etc/secrets
+      readOnly: true
+  volumes:
+  - name: secret-volume
+    secret:
+      secretName: my-secret
+```
+
+```bash
+# Create the Pod
+oc apply -f secret-volume-pod.yaml
+
+# Step 8 — Verify the mounted files
+oc logs secret-volume-pod
+
+# Step 9 — Create a Docker registry Secret
+oc create secret docker-registry registry-secret \
+  --docker-server=registry.example.com \
+  --docker-username=myuser \
+  --docker-password=mypassword
+
+# Verify
+oc get secret registry-secret
+
+# Step 10 — Create a TLS Secret
+oc create secret tls my-tls-secret \
+  --cert=tls.crt \
+  --key=tls.key
+
+# Verify
+oc get secret my-tls-secret
+
+# Step 11 — Inspect Secret data
+oc get secret my-secret -o yaml
+
+# Step 12 — Decode a Base64 encoded value
+echo 'bXl1c2Vy' | base64 -d
+# Output: myuser
+```
+
+### Key Concepts
+
+```text
+oc create secret generic
+    → Generic Secret
+
+--from-literal
+    → Secret value directly from command line
+
+--from-file
+    → Secret value from file
+
+secretKeyRef
+    → Specific Secret key as environment variable
+
+volumes.secret
+    → Secret mounted as files
+
+oc create secret docker-registry
+    → Registry credentials
+
+oc create secret tls
+    → TLS certificate and key
+
+Base64
+    → Encoding, not encryption
+```
+
+---
+
+## Lab 16 — Manage Configuration Maps
+
+**Objective:** Create and use OpenShift ConfigMaps to manage non-sensitive application configuration
+
+**Task details:**
+1. Create a new project called `config-demo`
+2. Create a ConfigMap called `my-config` with `APP_ENV=production` and `APP_DEBUG=false`
+3. Verify the ConfigMap and inspect its data
+4. Create a file called `index.html` containing a custom web page
+5. Create a ConfigMap called `nginx-config` from the `index.html` file
+6. Verify the ConfigMap contains the `index.html` key
+7. Create an nginx Pod called `cm-nginx` using the `bitnami/nginx` image
+8. Mount `nginx-config` as a volume at `/app`
+9. Verify that `index.html` is available inside the Pod
+10. Expose the Pod and use port forwarding to access the custom web page
+11. Use `my-config` as environment variables in a Pod
+12. Explain the difference between ConfigMaps and Secrets
+
+### Solution
+
+```bash
+# Step 1 — Create the project
+oc new-project config-demo
+
+# Step 2 — Create a ConfigMap
+oc create configmap my-config \
+  --from-literal=APP_ENV=production \
+  --from-literal=APP_DEBUG=false
+
+# Step 3 — Verify the ConfigMap
+oc get configmap my-config
+oc describe configmap my-config
+
+# Step 4 — Create the custom web page
+echo '<html><body><h1>Hello from OpenShift ConfigMap</h1></body></html>' > index.html
+
+# Step 5 — Create a ConfigMap from the file
+oc create configmap nginx-config \
+  --from-file=index.html
+
+# Step 6 — Verify the ConfigMap
+oc get configmap nginx-config
+oc describe configmap nginx-config
+
+# Step 7-8 — Create the nginx Pod and mount the ConfigMap
+vi cm-nginx-pod.yaml
+```
+
+`cm-nginx-pod.yaml`:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cm-nginx
+spec:
+  containers:
+  - name: nginx
+    image: bitnami/nginx
+    volumeMounts:
+    - name: config-volume
+      mountPath: /app
+  volumes:
+  - name: config-volume
+    configMap:
+      name: nginx-config
+```
+
+```bash
+# Create the Pod
+oc apply -f cm-nginx-pod.yaml
+
+# Step 9 — Verify the mounted file
+oc get pod cm-nginx
+oc exec cm-nginx -- ls -l /app
+oc exec cm-nginx -- cat /app/index.html
+
+# Step 10 — Port forward to the nginx Pod
+oc port-forward pod/cm-nginx 8080:8080
+```
+
+Open:
+
+```text
+http://localhost:8080
+```
+
+```bash
+# Step 11 — Use the ConfigMap as environment variables
+oc run cm-env-pod \
+  --image=busybox \
+  --restart=Never \
+  --env-from=configmap/my-config \
+  -- sh -c 'echo APP_ENV=$APP_ENV; echo APP_DEBUG=$APP_DEBUG'
+
+# Verify
+oc logs cm-env-pod
+
+# Step 12 — Inspect the ConfigMap
+oc get configmap my-config -o yaml
+```
+
+### Key Concepts
+
+```text
+oc create configmap
+    → Create a ConfigMap
+
+--from-literal
+    → Configuration value directly from command line
+
+--from-file
+    → Configuration from a file
+
+envFrom
+    → Import ConfigMap keys as environment variables
+
+configMap volume
+    → Mount ConfigMap data as files
+
+ConfigMap
+    → Non-sensitive configuration
+
+Secret
+    → Sensitive data such as passwords and credentials
+
+Base64
+    → ConfigMaps store data as plain text
+```
+
+---
+
+## Lab 17 — Persistent Storage
+
+**Objective:** Create and use persistent storage with PersistentVolumes (PV), PersistentVolumeClaims (PVC) and Pods
+
+**Task details:**
+1. Create a new project called `storage-demo`
+2. Create a directory `/mnt/data1` on the OpenShift node for HostPath storage
+3. Create a PersistentVolume called `my-pv` with 1Gi capacity and ReadWriteOnce access
+4. Create a PersistentVolumeClaim called `my-pvc` requesting 1Gi
+5. Verify that the PVC is bound to the PV
+6. Create a Pod called `persistent-pod` using the `bitnami/nginx` image
+7. Mount `my-pvc` at `/app`
+8. Verify that the Pod can access the persistent storage
+9. Create a file in the mounted volume
+10. Delete and recreate the Pod
+11. Verify that the file still exists after the Pod is recreated
+
+### Solution
+
+```bash
+# Step 1 — Create the project
+oc new-project storage-demo
+
+# Step 2 — Create the HostPath directory on the OpenShift node
+oc debug node/crc -- chroot /host mkdir -p /mnt/data1
+
+# Set the SELinux label
+oc debug node/crc -- chroot /host chcon -Rt svirt_sandbox_file_t /mnt/data1
+
+# Step 3 — Create the PersistentVolume
+vi pv.yaml
+```
+
+`pv.yaml`:
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: my-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/data1
+```
+
+```bash
+# Create the PersistentVolume
+oc apply -f pv.yaml
+
+# Verify
+oc get pv
+
+# Step 4 — Create the PersistentVolumeClaim
+vi pvc.yaml
+```
+
+`pvc.yaml`:
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+```
+
+```bash
+# Create the PersistentVolumeClaim
+oc apply -f pvc.yaml
+
+# Step 5 — Verify the PVC is bound
+oc get pvc
+oc get pv
+
+# Step 6-7 — Create the Pod and mount the PVC
+vi persistent-pod.yaml
+```
+
+`persistent-pod.yaml`:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: persistent-pod
+spec:
+  containers:
+  - name: nginx
+    image: bitnami/nginx
+    command:
+    - sh
+    - -c
+    - "touch /app/persistent.txt && sleep 3600"
+    volumeMounts:
+    - name: data-volume
+      mountPath: /app
+  volumes:
+  - name: data-volume
+    persistentVolumeClaim:
+      claimName: my-pvc
+```
+
+```bash
+# Create the Pod
+oc apply -f persistent-pod.yaml
+
+# Step 8 — Verify the mounted storage
+oc get pod persistent-pod
+oc exec persistent-pod -- df -h /app
+oc exec persistent-pod -- ls -la /app
+
+# Step 9 — Create a file in the persistent volume
+oc exec persistent-pod -- sh -c 'echo "Persistent storage works" > /app/test.txt'
+oc exec persistent-pod -- cat /app/test.txt
+
+# Step 10 — Delete and recreate the Pod
+oc delete pod persistent-pod
+oc apply -f persistent-pod.yaml
+
+# Step 11 — Verify the file still exists
+oc exec persistent-pod -- cat /app/test.txt
+```
+
+Expected:
+
+```text
+Persistent storage works
+```
+
+### Key Concepts
+
+```text
+PersistentVolume (PV)
+    → Storage resource provided by the cluster
+
+PersistentVolumeClaim (PVC)
+    → Request for storage made by an application
+
+PV
+    ↓
+PVC
+    ↓
+Pod
+    ↓
+Mounted storage
+
+ReadWriteOnce (RWO)
+    → Volume can be mounted read/write by one node
+
+HostPath
+    → Storage backed by a directory on the node
+
+Persistent storage
+    → Data survives Pod deletion/recreation
+```
+
+---
+
+## Lab 18 — Storage Classes
+
+**Objective:** Use StorageClasses to dynamically provision persistent storage in OpenShift
+
+**Task details:**
+1. Create a new project called `storageclass-demo`
+2. List the available StorageClasses
+3. Identify the default StorageClass
+4. Create a PersistentVolumeClaim called `my-hostpath-claim` using the default StorageClass
+5. Request 1Gi of storage with `ReadWriteOnce` access
+6. Verify that the PVC is created and becomes bound
+7. Verify that OpenShift dynamically created a PersistentVolume
+8. Create a Pod called `storage-pod` using the `bitnami/nginx` image
+9. Mount the PVC at `/data`
+10. Create a file in `/data` and verify that it is stored on the persistent volume
+11. Inspect the StorageClass, PVC and PV
+12. Explain the difference between a manually created PV and dynamically provisioned storage
+
+### Solution
+
+```bash
+# Step 1 — Create the project
+oc new-project storageclass-demo
+
+# Step 2 — List the available StorageClasses
+oc get storageclass
+
+# Step 3 — Identify the default StorageClass
+oc get storageclass
+
+# Step 4-5 — Create a PVC using the default StorageClass
+vi pvc.yaml
+```
+
+`pvc.yaml`:
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-hostpath-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+```
+
+```bash
+# Create the PVC
+oc apply -f pvc.yaml
+
+# Step 6 — Verify the PVC
+oc get pvc
+
+# Step 7 — Verify the dynamically created PV
+oc get pv
+
+# Step 8-9 — Create a Pod using the PVC
+vi storage-pod.yaml
+```
+
+`storage-pod.yaml`:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: storage-pod
+spec:
+  containers:
+  - name: nginx
+    image: bitnami/nginx
+    command:
+    - sh
+    - -c
+    - "touch /data/storage-test.txt && sleep 3600"
+    volumeMounts:
+    - name: data-volume
+      mountPath: /data
+  volumes:
+  - name: data-volume
+    persistentVolumeClaim:
+      claimName: my-hostpath-claim
+```
+
+```bash
+# Create the Pod
+oc apply -f storage-pod.yaml
+
+# Verify the Pod
+oc get pod storage-pod
+
+# Step 10 — Create and verify a file
+oc exec storage-pod -- sh -c 'echo "StorageClass works" > /data/storage-test.txt'
+oc exec storage-pod -- cat /data/storage-test.txt
+
+# Step 11 — Inspect the StorageClass, PVC and PV
+oc get storageclass
+oc describe pvc my-hostpath-claim
+oc get pv
+```
+
+### Key Concepts
+
+```text
+StorageClass
+    → Defines how storage is dynamically provisioned
+
+PVC
+    → Requests storage from a StorageClass
+
+StorageClass
+    ↓
+PVC
+    ↓
+Dynamic PV
+    ↓
+Pod
+
+Static provisioning
+    → Administrator creates PV manually
+
+Dynamic provisioning
+    → PVC requests storage
+    → StorageClass automatically provisions the PV
+```
+
+---
+
+## Lab 19 — StatefulSets
+
+**Objective:** Deploy and manage stateful applications using StatefulSets with stable identities and dedicated persistent storage
+
+**Task details:**
+1. Create a new project called `stateful-demo`
+2. Create a headless Service called `mysql` with `clusterIP: None`
+3. Create a StatefulSet called `mysql` with 2 replicas
+4. Use the `bitnami/mysql` image
+5. Configure the StatefulSet to use the `mysql` headless Service
+6. Create a `volumeClaimTemplate` requesting 1Gi of storage for each Pod
+7. Apply the Service and StatefulSet
+8. Verify the StatefulSet, Pods and Service
+9. Verify that each Pod has its own PersistentVolumeClaim
+10. Scale the StatefulSet to 3 replicas
+11. Verify that the new Pod receives its own PersistentVolumeClaim
+12. Delete a Pod and verify that it is recreated with the same name
+
+### Solution
+
+```bash
+# Step 1 — Create the project
+oc new-project stateful-demo
+
+# Step 2 — Create the headless Service
+vi mysql-service.yaml
+```
+
+`mysql-service.yaml`:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  clusterIP: None
+  selector:
+    app: mysql
+  ports:
+  - port: 3306
+    targetPort: 3306
+```
+
+```bash
+# Create the Service
+oc apply -f mysql-service.yaml
+
+# Step 3-6 — Create the StatefulSet
+vi mysql-statefulset.yaml
+```
+
+`mysql-statefulset.yaml`:
+
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  serviceName: mysql
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: bitnami/mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: password
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /bitnami/mysql
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+```
+
+```bash
+# Step 7 — Create the StatefulSet
+oc apply -f mysql-statefulset.yaml
+
+# Step 8 — Verify the StatefulSet, Pods and Service
+oc get statefulset
+oc get pods
+oc get service
+
+# Step 9 — Verify the PVCs and PVs
+oc get pvc
+oc get pv
+
+# Step 10 — Scale the StatefulSet
+oc scale statefulset mysql --replicas=3
+
+# Step 11 — Verify the new Pod and PVC
+oc get pods
+oc get pvc
+
+# Step 12 — Delete a Pod
+oc delete pod mysql-0
+
+# Verify that the Pod is recreated with the same name
+oc get pods
+```
+
+### Key Concepts
+
+```text
+Deployment
+    → Stateless applications
+    → Pods have replaceable identities
+
+StatefulSet
+    → Stateful applications
+    → Pods have stable identities
+
+StatefulSet
+    ↓
+mysql-0
+mysql-1
+mysql-2
+
+volumeClaimTemplates
+    ↓
+One PVC per Pod
+
+Headless Service
+    → clusterIP: None
+    → Stable network identities
+
+StatefulSet
+    → Stable Pod names
+    → Ordered creation/scaling
+    → Dedicated storage per Pod
+```
+
+---
