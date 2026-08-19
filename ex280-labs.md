@@ -1027,3 +1027,29 @@ oc describe route my-http-app
 
 # Step 9 — Test the route
 curl http://my-app.httpdemo.apps-crc.testing
+
+[Lab 15 — Manage Secrets](#lab-15--manage-secrets)
+
+## Lab 15 — Manage Secrets
+
+**Objective:** Create, inspect and use OpenShift Secrets to securely manage sensitive application data
+
+**Task details:**
+1. Create a new project called `secrets-demo`
+2. Create a generic Secret called `my-secret` with `username=myuser` and `password=mypassword`
+3. Verify the Secret and inspect its keys
+4. Create `username.txt` and `password.txt` and create a Secret called `my-file-secret` from these files
+5. Create a Pod called `secret-pod` using the `busybox` image and inject the values from `my-secret` as environment variables
+6. Verify the Secret values using the Pod logs
+7. Create a Pod called `secret-volume-pod` and mount `my-secret` as files under `/etc/secrets`
+8. Verify the Secret values from the mounted files
+9. Create a Docker registry Secret called `registry-secret`
+10. Create a TLS Secret called `my-tls-secret` using `tls.crt` and `tls.key`
+11. Display `my-secret` as YAML and inspect the Base64 encoded values
+12. Decode one of the Base64 encoded Secret values
+
+### Solution
+
+**Step 1 — Create the project**
+```bash
+oc new-project secrets-demo
