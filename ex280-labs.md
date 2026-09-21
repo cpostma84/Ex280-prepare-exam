@@ -1808,94 +1808,80 @@ StatefulSet
     → Dedicated storage per Pod
 ```
 
-
 # Lab 20 — Mount Storage — PV and PVC
 
 ## Task
 
-An NFS-backed StorageClass is already configured.
+An NFS backend StorageClass is already configured.
 
-Create a PersistentVolume (PV) with the following requirements:
+Create a PersistentVolume (PV):
 
-- Name: `wev-pv`
+- Name: `web-pv`
 - Size: `1Gi`
 - Access Mode: `ReadOnlyMany`
-- Reclaim Policy: same as the StorageClass
+- Reclaim Policy: same as the existing StorageClass
+- StorageClass: use the existing NFS StorageClass
 - NFS path: `/exports-ocp4/page`
-- Use the NFS server details from the existing StorageClass
 
 Create a PersistentVolumeClaim (PVC):
 
+- Project: `webserver`
 - Name: `web-pvc`
 - Size: `1Gi`
 - Access Mode: `ReadOnlyMany`
+- StorageClass: same as the PV
 
-Deploy the application:
+Deploy:
 
-- Project: `webserver`
 - Deployment: `web-landing`
 - Image: `registry.ocp4.example.com:8443/redhattraining/hello-world-nginx:v1.0`
 - Replicas: `3`
-- Mount the PVC at: `/usr/share/nginx/html`
-- Application URL:
-  `https://exoplanets-declarative-manifests.apps.ocp4.example.com`
+- Mount PVC at `/usr/share/nginx/html`
+- Create a Service and Route
+- Hostname:
+  `exoplanets-declarative-manifests.apps.ocp4.example.com`
 
 ### Solution
 
 ```bash
-# Step 1 — Create the project
+# Step 1 — Create project
 oc new-project webserver
 
 # Step 2 — Inspect the existing StorageClass
 oc get storageclass
-oc describe storageclass <storageclass-name>
+oc describe storageclass <nfs-storageclass>
 
-# Note the NFS server and reclaim policy from the StorageClass.
-# Example:
-# provisioner: kubernetes.io/nfs
-# parameters/server: <NFS-server>
-# reclaimPolicy: Retain
+# Step 3 — Create a temporary PVC to discover NFS details
+# Use the existing/default NFS StorageClass.
+# The dynamically created PV reveals:
+# - NFS server
+# - NFS export path
+# - volumeMode
+# - reclaimPolicy
 
-# Step 3 — Create the PersistentVolume
-vi wev-pv.yaml
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: wev-pv
-spec:
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadOnlyMany
-  persistentVolumeReclaimPolicy: Retain
-  nfs:
-    server: <NFS-server>
-    path: /exports-ocp4/page
-# Step 4 — Create the PV
-oc apply -f wev-pv.yaml
+oc get pvc
+oc get pv
+oc get pv <temporary-pv> -o yaml
 
-# Step 5 — Verify the PV
-oc get pv wev-pv
+# Step 4 — Create the required PV
+vi web-pv.yaml
+
+# Use the NFS server, path, volumeMode and reclaimPolicy
+# discovered from the temporary PV.
+
+# Step 5 — Apply the PV
+oc apply -f web-pv.yaml
 
 # Step 6 — Create the PVC
-cat <<EOF > web-pvc.yaml
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: web-pvc
-spec:
-  accessModes:
-    - ReadOnlyMany
-  resources:
-    requests:
-      storage: 1Gi
-EOF
+vi web-pvc.yaml
 
-# Step 7 — Create the PVC
+# Step 7 — Apply the PVC
 oc apply -f web-pvc.yaml
 
-# Step 8 — Verify that the PVC is Bound
-oc get pvc web-pvc
+# Step 8 — Verify PV/PVC binding
+oc get pv
+oc get pvc
+
 # Step 9 — Create the Deployment
 oc create deployment web-landing \
   --image=registry.ocp4.example.com:8443/redhattraining/hello-world-nginx:v1.0
@@ -1912,34 +1898,18 @@ oc set volume deployment/web-landing \
   --mount-path=/usr/share/nginx/html \
   --read-only
 
-# Step 12 — Verify the Deployment
-oc get deployment web-landing
-oc get pods
-oc describe deployment web-landing
-
-# Step 13 — Expose the Deployment
+# Step 12 — Create Service
 oc expose deployment web-landing
 
-# Step 14 — Create the required Route
-oc create route edge exoplanets-declarative-manifests \
+# Step 13 — Create Route
+oc create route edge web-landing-route \
   --service=web-landing \
   --hostname=exoplanets-declarative-manifests.apps.ocp4.example.com
 
-# Step 15 — Verify the Route
+# Step 14 — Verify
+oc get pv
+oc get pvc
+oc get deployment
+oc get pods
+oc get svc
 oc get route
-Verification
-# Check PV/PVC binding
-oc get pv wev-pv
-oc get pvc web-pvc
-
-# Check Deployment and Pods
-oc get deployment web-landing
-oc get pods -o wide
-
-# Check the mounted volume
-oc describe pod <pod-name>
-
-# Check the Route
-oc get route exoplanets-declarative-manifests
-
----
