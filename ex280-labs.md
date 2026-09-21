@@ -21,8 +21,7 @@
 - [Lab 17 — Persistent Storage](#lab-17--persistent-storage)
 - [Lab 18 — Storage Classes](#lab-18--storage-classes)
 - [Lab 19 — StatefulSets](#lab-19--statefulsets)
-- [Lab 20 - Mount Storage — PV and PVC](#lab-20--Mount--Storage)
-
+- [Lab 20 — Mount Storage — PV and PVC](#lab-20--mount-storage--pv-and-pvc)
 ---
 
 ## Lab 1 — HTPasswd Identity Provider
