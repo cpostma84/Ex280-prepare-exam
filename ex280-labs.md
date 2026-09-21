@@ -22,6 +22,20 @@
 - [Lab 18 — Storage Classes](#lab-18--storage-classes)
 - [Lab 19 — StatefulSets](#lab-19--statefulsets)
 - [Lab 20 — Mount Storage — PV and PVC](#lab-20--mount-storage--pv-and-pvc)
+
+Needs to be added:
+Lab 21 — ServiceAccounts and SCC
+Lab 22 — Kustomize
+Lab 23 — Kustomize Overlays
+Lab 24 — NetworkPolicy
+Lab 25 — Routes and TLS
+Lab 26 — Networking and Troubleshooting
+Lab 27 — LoadBalancer, NodePort and SNI
+Lab 28 — Operators
+Lab 29 — Project Templates and Developer Self-Service
+Lab 30 — CronJobs
+Lab 31 — Images, Tags, Digests and Resource Queries
+Lab 32 — OpenShift Troubleshooting
 ---
 
 ## Lab 1 — HTPasswd Identity Provider
