@@ -21,6 +21,7 @@
 - [Lab 17 — Persistent Storage](#lab-17--persistent-storage)
 - [Lab 18 — Storage Classes](#lab-18--storage-classes)
 - [Lab 19 — StatefulSets](#lab-19--statefulsets)
+- [Lab 20 - Mount Storage — PV and PVC](#lab-20--Mount--Storage)
 
 ---
 
@@ -1807,5 +1808,139 @@ StatefulSet
     → Ordered creation/scaling
     → Dedicated storage per Pod
 ```
+
+
+# Lab 20 — Mount Storage — PV and PVC
+
+## Task
+
+An NFS-backed StorageClass is already configured.
+
+Create a PersistentVolume (PV) with the following requirements:
+
+- Name: `wev-pv`
+- Size: `1Gi`
+- Access Mode: `ReadOnlyMany`
+- Reclaim Policy: same as the StorageClass
+- NFS path: `/exports-ocp4/page`
+- Use the NFS server details from the existing StorageClass
+
+Create a PersistentVolumeClaim (PVC):
+
+- Name: `web-pvc`
+- Size: `1Gi`
+- Access Mode: `ReadOnlyMany`
+
+Deploy the application:
+
+- Project: `webserver`
+- Deployment: `web-landing`
+- Image: `registry.ocp4.example.com:8443/redhattraining/hello-world-nginx:v1.0`
+- Replicas: `3`
+- Mount the PVC at: `/usr/share/nginx/html`
+- Application URL:
+  `https://exoplanets-declarative-manifests.apps.ocp4.example.com`
+
+### Solution
+
+```bash
+# Step 1 — Create the project
+oc new-project webserver
+
+# Step 2 — Inspect the existing StorageClass
+oc get storageclass
+oc describe storageclass <storageclass-name>
+
+# Note the NFS server and reclaim policy from the StorageClass.
+# Example:
+# provisioner: kubernetes.io/nfs
+# parameters/server: <NFS-server>
+# reclaimPolicy: Retain
+
+# Step 3 — Create the PersistentVolume
+vi wev-pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: wev-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadOnlyMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: <NFS-server>
+    path: /exports-ocp4/page
+# Step 4 — Create the PV
+oc apply -f wev-pv.yaml
+
+# Step 5 — Verify the PV
+oc get pv wev-pv
+
+# Step 6 — Create the PVC
+cat <<EOF > web-pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: web-pvc
+spec:
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 1Gi
+EOF
+
+# Step 7 — Create the PVC
+oc apply -f web-pvc.yaml
+
+# Step 8 — Verify that the PVC is Bound
+oc get pvc web-pvc
+# Step 9 — Create the Deployment
+oc create deployment web-landing \
+  --image=registry.ocp4.example.com:8443/redhattraining/hello-world-nginx:v1.0
+
+# Step 10 — Scale to 3 replicas
+oc scale deployment web-landing --replicas=3
+
+# Step 11 — Mount the PVC
+oc set volume deployment/web-landing \
+  --add \
+  --name=web-content \
+  --type=persistentVolumeClaim \
+  --claim-name=web-pvc \
+  --mount-path=/usr/share/nginx/html \
+  --read-only
+
+# Step 12 — Verify the Deployment
+oc get deployment web-landing
+oc get pods
+oc describe deployment web-landing
+
+# Step 13 — Expose the Deployment
+oc expose deployment web-landing
+
+# Step 14 — Create the required Route
+oc create route edge exoplanets-declarative-manifests \
+  --service=web-landing \
+  --hostname=exoplanets-declarative-manifests.apps.ocp4.example.com
+
+# Step 15 — Verify the Route
+oc get route
+Verification
+# Check PV/PVC binding
+oc get pv wev-pv
+oc get pvc web-pvc
+
+# Check Deployment and Pods
+oc get deployment web-landing
+oc get pods -o wide
+
+# Check the mounted volume
+oc describe pod <pod-name>
+
+# Check the Route
+oc get route exoplanets-declarative-manifests
 
 ---
