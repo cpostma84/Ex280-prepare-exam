@@ -444,69 +444,35 @@ oc describe quota neptune-quota -n neptune
 
 ---
 
-## Lab 7 — Limit Range
+# Lab 7 — LimitRange
 
-**Objective:** Create a LimitRange object in the avalon project
+### Task
 
-**Task details:**
-- Create a LimitRange named avalon-constraints in the avalon project
-- Pod memory limits: minimum 100Mi, maximum 500Mi
-- Pod CPU limits: minimum 100m, maximum 500m
-- Container memory limits: minimum 50Mi, maximum 300Mi
-- Container CPU limits: minimum 50m, maximum 300m
-- Default request: CPU 150m, memory 150Mi
-- Verify the LimitRange works correctly
+Create a LimitRange named `avalon-limits` in the `avalon` namespace.
+
+- Memory (per container):
+  - minimum request: `50Mi`
+  - maximum limit: `250Mi`
+  - default request: `100Mi`
+- CPU (per pod):
+  - minimum request: `50m`
+  - maximum limit: `250m`
+  - default request: `100m`
 
 ### Solution
 
-**Step 1 — Switch to the avalon project**
 ```bash
+# Step 1 — Switch to the avalon project
 oc project avalon
-```
 
-**Step 2 — Create the LimitRange**
-```bash
-cat << 'EOF' | oc apply -f -
-apiVersion: v1
-kind: LimitRange
-metadata:
-  name: avalon-constraints
-  namespace: avalon
-spec:
-  limits:
-  - type: Pod
-    max:
-      memory: 500Mi
-      cpu: 500m
-    min:
-      memory: 100Mi
-      cpu: 100m
-  - type: Container
-    max:
-      memory: 300Mi
-      cpu: 300m
-    min:
-      memory: 50Mi
-      cpu: 50m
-    defaultRequest:
-      memory: 150Mi
-      cpu: 150m
-EOF
-```
+# Step 2 — Create the LimitRange manifest
+vi limitrange.yaml
 
-**Step 3 — Verify**
-```bash
-oc describe limitrange avalon-constraints
-```
+# Step 3 — Apply the LimitRange
+oc apply -f limitrange.yaml
 
-**Step 4 — Verify defaults are injected automatically**
-```bash
-# Deploy a pod without resource limits
-oc run nginx --image=bitnami/nginx --dry-run=client -o yaml > pod.yaml
-oc apply -f pod.yaml
-
-# Check that default requests were applied automatically
-oc describe pod nginx | grep -A 5 Limits
+# Step 4 — Verify the LimitRange
+oc describe limitrange avalon-limits
 ```
 
 ---
