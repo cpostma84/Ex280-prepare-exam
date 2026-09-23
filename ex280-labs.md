@@ -680,7 +680,7 @@ oc delete job one-time-task
 2. Create a deployment manifest named httpd-deployment.yaml using image nginxinc/nginx-unprivileged:stable with 2 replicas and rolling update strategy
 3. Apply the manifest and verify the pods are running
 4. Monitor the rollout status
-5. Update the image to nginx-unprivileged:alpine
+5. Update the nginx-unprivileged container image to nginxinc/nginx-unprivileged:alpine
 6. Monitor the rollout and verify the update
 7. View the rollout history
 8. Rollback to the previous version
