@@ -777,7 +777,7 @@ oc apply -f httpd-deployment.yaml
 **Objective:** Understand and manage ReplicaSets in OpenShift
 
 **Task details:**
-1. Create a ReplicaSet manifest named replicaset.yaml with name my-replicaset, 3 replicas, image docker.io/httpd:2.4 and label app=myapp
+1. Create replicaset.yaml with a ReplicaSet named my-replicaset. The ReplicaSet must run 3 replicas of docker.io/httpd:2.4 and use the label app=myapp.
 2. Apply the manifest and verify the pods are running
 3. Check the status of the ReplicaSet
 4. Scale the ReplicaSet to 5 replicas using oc scale
