@@ -1914,3 +1914,26 @@ oc get deployment
 oc get pods
 oc get svc
 oc get route
+```
+## Lab 21 — Configure ServiceAccounts and SCC
+
+**Objective:** Configure a ServiceAccount to allow Pods to run as any user.
+
+**Task details:**
+
+1. Create a ServiceAccount named `redhat-sa` in the `production` project.
+2. Allow the ServiceAccount to use the `anyuid` SCC.
+
+**Solution**
+
+```bash
+oc create serviceaccount redhat-sa -n production
+oc adm policy add-scc-to-user anyuid -z redhat-sa -n production
+```
+
+**Verify**
+
+```bash
+oc auth can-i use scc/anyuid \
+  --as=system:serviceaccount:production:redhat-sa
+```
