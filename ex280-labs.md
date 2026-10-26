@@ -1915,25 +1915,43 @@ oc get pods
 oc get svc
 oc get route
 ```
-## Lab 21 — Configure ServiceAccounts and SCC
+## Lab 21 — ServiceAccounts and SCC
 
-**Objective:** Configure a ServiceAccount to allow Pods to run as any user.
+**Objective:** Configure a ServiceAccount with permission to run Pods as any user and deploy an application using that ServiceAccount.
 
 **Task details:**
 
 1. Create a ServiceAccount named `redhat-sa` in the `production` project.
 2. Allow the ServiceAccount to use the `anyuid` SCC.
+3. Configure the existing application `team` in the `production` project to use the `redhat-sa` ServiceAccount.
+4. Do not add or remove any configuration components from the application.
+5. Ensure the application produces output when accessed.
 
 **Solution**
 
 ```bash
+# Create the ServiceAccount
 oc create serviceaccount redhat-sa -n production
+
+# Allow the ServiceAccount to use anyuid
 oc adm policy add-scc-to-user anyuid -z redhat-sa -n production
-```
 
-**Verify**
+# Configure the existing application to use redhat-sa
+oc set serviceaccount deployment/team redhat-sa -n production
 
-```bash
+# Verify the rollout
+oc rollout status deployment/team -n production
+
+# Verify the ServiceAccount
+oc get deployment team -n production \
+  -o jsonpath='{.spec.template.spec.serviceAccountName}{"\n"}'
+
+# Verify the SCC permission
 oc auth can-i use scc/anyuid \
   --as=system:serviceaccount:production:redhat-sa
+
+# Check the application resources
+oc get pods,svc,routes -n production
 ```
+
+**Success criteria:** The `redhat-sa` ServiceAccount exists, is allowed to use `anyuid`, and the existing `team` Deployment uses that ServiceAccount without adding or removing application configuration components.
