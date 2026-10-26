@@ -534,170 +534,104 @@ oc delete -f webserver.yaml
 
 ---
 
-Lab 9 — Deploy from Images, Templates and Helm Charts
+## Lab 9 — Deploy from Images, Templates and Helm Charts
 
-Objective
+**Objective**
 
 Deploy applications using three different methods:
+- Container images
+- OpenShift templates
+- Helm charts
 
-Container images
+**Task details:**
 
-OpenShift templates
+**Part 1 — Deploy from image**
 
-Helm charts
+1. Create a new project called `deploy-demo`
+2. Deploy an application named `myapp` using the image `docker.io/bitnami/nginx`
+3. Verify the Pods are running
 
-Part 1 — Deploy from an Image
+**Part 2 — Deploy from OpenShift template**
 
-Tasks
+4. List the available templates in the `openshift` namespace
+5. Examine the `httpd-example` template to see its parameters
+6. Save the template to a local file
+7. Process the template with parameter `NAME=frontend` and label `app=web`, then apply it to the cluster
+8. Verify the created resources
 
-Create a new project called deploy-demo.
+**Part 3 — Deploy from Helm chart**
 
-Deploy an application named myapp using the image docker.io/bitnami/nginx.
+9. Add the Helm repository with the name `nginx-repo` using `https://kubernetesway.github.io/my-helm-repo`
+10. Update the Helm repository index
+11. Find the chart name and available versions
+12. Install the chart using release name `example-app` and chart version `0.1.0`
+13. Verify the Helm release
+14. Upgrade the `example-app` release to chart version `0.2.0`
+15. Verify the upgrade
 
-Verify that the application resources are created and the Pods are running.
+**Solution**
 
-Solution
-
-1. Create the project
+```bash
+# Part 1 — Deploy from image
 
 oc new-project deploy-demo
-
-2. Deploy the application
-
 oc new-app --image=docker.io/bitnami/nginx --name=myapp --allow-missing-images
-
-3. Verify the resources
-
-oc get deployments
 oc get pods -w
 
-Check the Deployment and Pod status. Press Ctrl+C to stop watching.
+# Part 2 — Deploy from OpenShift template
 
-If the Pod does not start, inspect its status and events:
-
-oc describe pod <pod-name>
-oc logs <pod-name>
-
-Note: --allow-missing-images allows OpenShift to create the application resources even if it cannot find image metadata during creation. It does not guarantee that the image can be pulled or that the container will start successfully.
-
-Part 2 — Deploy from an OpenShift Template
-
-Tasks
-
-List the available templates in the openshift namespace.
-
-Examine the httpd-example template and identify its parameters.
-
-Save the template to a local file.
-
-Process the template with the parameter NAME=frontend and the label app=web, then apply the generated resources.
-
-Verify the created resources.
-
-Solution
-
-4. List available templates
-
+# List available templates
 oc get templates -n openshift
 
-5. Examine the template
-
+# Examine the template
 oc describe template httpd-example -n openshift
 
-List the template parameters:
-
+# List template parameters
 oc process --parameters httpd-example -n openshift
 
-6. Save the template to a local file
-
+# Save the template to a local file
 oc get template httpd-example -n openshift -o yaml > httpd-example-template.yaml
 
-7. Process and apply the template
-
+# Process and apply the template
 oc process httpd-example -n openshift \
   -p NAME=frontend \
   -l app=web \
   -o yaml | oc apply -f -
 
-The command processes the template, sets the NAME parameter, adds the app=web label to the generated objects, and applies them to the current project.
-
-8. Verify the created resources
-
+# Verify the created resources
 oc get all -l app=web
 
-If the template does not exist in your CRC environment, check the output of oc get templates -n openshift and use a template that is actually available.
+# Part 3 — Deploy from Helm chart
 
-Part 3 — Deploy and Upgrade a Helm Chart
-
-Tasks
-
-Install Helm on your local machine.
-
-Add the Helm repository named nginx-repo.
-
-Update the repository index.
-
-Install the chart using release name example-app and chart version 0.1.0.
-
-Verify the Helm release.
-
-Upgrade the release to chart version 0.2.0.
-
-Verify the upgrade.
-
-Solution
-
-9. Install Helm
-
-On a Linux machine, use the official Helm installation instructions or installer:
-
-curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 -o get_helm.sh
-chmod 700 get_helm.sh
-./get_helm.sh
-
-Verify the installation:
-
-helm version
-
-10. Add the Helm repository
-
+# Add the Helm repository
 helm repo add nginx-repo https://kubernetesway.github.io/my-helm-repo
 
-11. Update the repository index
-
+# Update the repository index
 helm repo update
 
-Search for the chart and its available versions:
-
+# Find the chart name and available versions
 helm search repo nginx-repo --versions
 
-12. Install chart version 0.1.0
-
-Use the chart name returned by the search command:
-
+# Install chart version 0.1.0
 helm install example-app nginx-repo/<chart-name> --version 0.1.0
 
-Replace <chart-name> with the actual chart name. Do not include the angle brackets.
-
-13. Verify the Helm release
-
+# Verify the release
 helm list
 helm status example-app
-helm history example-app
 
-14. Upgrade to chart version 0.2.0
-
+# Upgrade to chart version 0.2.0
 helm upgrade example-app nginx-repo/<chart-name> --version 0.2.0
 
-Use the same chart name as in the installation command.
-
-15. Verify the upgrade
-
-helm status example-app
+# Verify the upgrade
 helm history example-app
-helm list
+helm status example-app
 
-Check that the release upgrade succeeded and that the chart version is now 0.2.0.```
+# Uninstall the Helm release when finished
+helm uninstall example-app
+```
+
+
+```
 
 ---
 
