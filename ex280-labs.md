@@ -1287,28 +1287,7 @@ http://localhost:8080
 
 ```bash
 # Step 11 — Use the ConfigMap as environment variables
-oc run cm-env-pod \
-  --image=busybox \
-  --restart=Never \
-  --dry-run=client -o yaml \
-  -- sh -c 'echo APP_ENV=$APP_ENV; echo APP_DEBUG=$APP_DEBUG' > cm-env-pod.yaml
-
-apiVersion: v1
-kind: Pod
-metadata:
-  name: cm-env-pod
-spec:
-  restartPolicy: Never
-  containers:
-  - name: cm-env-pod
-    image: busybox
-    envFrom:
-    - configMapRef:
-        name: my-config
-    command:
-    - sh
-    - -c
-    - 'echo APP_ENV=$APP_ENV; echo APP_DEBUG=$APP_DEBUG'
+oc run cm-env-pod --image=bitnami/nginx --env-from-configmap=my-config --dry-run=client -o yaml > cm-env-pod.yaml
 
 # Verify
 oc logs cm-env-pod
