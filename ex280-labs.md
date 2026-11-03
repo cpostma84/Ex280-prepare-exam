@@ -1261,27 +1261,9 @@ oc get configmap nginx-config
 oc describe configmap nginx-config
 
 # Step 7-8 — Create the nginx Pod and mount the ConfigMap
-vi cm-nginx-pod.yaml
-```
+oc run cm-nginx --image=bitnami/nginx --dry-run=client -o yaml | oc set volume -f - --add --name=nginx-config-vol --type=configmap --configmap-name=nginx-config --mount-path=/app --local -o yaml > cm-nginx.yaml
 
-`cm-nginx-pod.yaml`:
 
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: cm-nginx
-spec:
-  containers:
-  - name: nginx
-    image: bitnami/nginx
-    volumeMounts:
-    - name: config-volume
-      mountPath: /app
-  volumes:
-  - name: config-volume
-    configMap:
-      name: nginx-config
 ```
 
 ```bash
