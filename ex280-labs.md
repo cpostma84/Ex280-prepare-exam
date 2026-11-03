@@ -1153,7 +1153,8 @@ spec:
 # Create the Pod
 OR
 
-oc run secret-volume-pod --image=bitnami/nginx --dry-run=client -o yaml | oc set volume -f - --add --name=secret-volume --type=secret --secret-name=my-secret --mount-path=/etc/secrets --local -o yaml > secret-volume-pod.yaml
+oc run secret-volume-pod --image=bitnami/nginx --dry-run=client -o yaml | oc set volume -f -
+--add --name=secret-volume --type=secret --secret-name=my-secret --mount-path=/etc/secrets --local -o yaml > secret-volume-pod.yaml
 
 oc apply -f secret-volume-pod.yaml
 
