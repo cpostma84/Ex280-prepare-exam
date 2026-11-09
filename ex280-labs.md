@@ -1497,7 +1497,7 @@ HTTP/1.1 200 OK
 - **ReadOnlyMany (ROX):** Allows multiple nodes to mount the volume as read-only.
 - **Deployment replicas:** Three application Pods sharing the same NFS web root.
 - **Edge Route:** Exposes the application externally with TLS termination at the OpenShift Router.
-```
+
 
 ---
 
