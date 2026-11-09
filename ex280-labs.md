@@ -1326,170 +1326,168 @@ Base64
 
 ---
 
-## Lab 17 — Persistent Storage
+## Lab 17 — Mount Storage (PV, PVC, Deployment & Route)
 
-**Objective:** Create and use persistent storage with PersistentVolumes (PV), PersistentVolumeClaims (PVC) and Pods
+**Objective:** Create and use persistent storage with PersistentVolumes (PV), PersistentVolumeClaims (PVC), Deployments and Routes in OpenShift using an NFS back-end.
 
 **Task details:**
-1. Create a new project called `storage-demo`
-2. Create a directory `/mnt/data1` on the OpenShift node for HostPath storage
-3. Create a PersistentVolume called `my-pv` with 1Gi capacity and ReadWriteOnce access
-4. Create a PersistentVolumeClaim called `my-pvc` requesting 1Gi
-5. Verify that the PVC is bound to the PV
-6. Create a Pod called `persistent-pod` using the `bitnami/nginx` image
-7. Mount `my-pvc` at `/app`
-8. Verify that the Pod can access the persistent storage
-9. Create a file in the mounted volume
-10. Delete and recreate the Pod
-11. Verify that the file still exists after the Pod is recreated
+1. Inspect the existing NFS-backed StorageClass on the cluster to determine its details and Reclaim Policy
+2. Create a new project named `webserver`
+3. Create a PersistentVolume named `web-pv` with the following specifications:
+   * Access Mode: `ReadOnlyMany`
+   * Size: `1Gi`
+   * Reclaim Policy: Same as the existing StorageClass (`Retain`)
+   * Path: `/exports/nfs-share` (or `/exports-ocp4/page`)
+4. Create a PersistentVolumeClaim named `web-pvc` in the `webserver` project with:
+   * Size: Same as the PV (`1Gi`)
+   * Access Mode: Same as the PV (`ReadOnlyMany`)
+5. Verify that the PVC is successfully bound to the PV
+6. Deploy an application with the following requirements:
+   * Project: `webserver`
+   * Deployment name: `web-landing`
+   * Container image: `nginx:alpine`
+   * Replica count: `3`
+   * Mount `web-pvc` at `/usr/share/nginx/html`
+7. Expose the deployment via a Service and a secure Edge Route accessible at:
+   `https://exoplanets-declarative-manifests.apps.ocp4.example.com`
+8. Verify that all 3 Pods are running and that the web application responds correctly
 
 ### Solution
 
 ```bash
-# Step 1 — Create the project
-oc new-project storage-demo
+# Step 1 — Inspect the existing StorageClass
+oc get storageclass
+oc describe storageclass <storageclass-name>
 
-# Step 2 — Create the HostPath directory on the OpenShift node
-oc debug node/crc -- chroot /host mkdir -p /mnt/data1
-
-# Set the SELinux label
-oc debug node/crc -- chroot /host chcon -Rt svirt_sandbox_file_t /mnt/data1
+# Step 2 — Create the project
+oc new-project webserver
 
 # Step 3 — Create the PersistentVolume
-vi pv.yaml
-```
+vi web-pv.yaml
+web-pv.yaml:
 
-`pv.yaml`:
-
-```yaml
+YAML
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: my-pv
+  name: web-pv
 spec:
   capacity:
     storage: 1Gi
   accessModes:
-    - ReadWriteOnce
+    - ReadOnlyMany
   persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /mnt/data1
-```
-
-```bash
-# Create the PersistentVolume
-oc apply -f pv.yaml
+  nfs:
+    server: <NFS_SERVER_IP>
+    path: /exports/nfs-share
+Bash
+# Apply the PersistentVolume
+oc apply -f web-pv.yaml
 
 # Verify
-oc get pv
+oc get pv web-pv
 
 # Step 4 — Create the PersistentVolumeClaim
-vi pvc.yaml
-```
+vi web-pvc.yaml
+web-pvc.yaml:
 
-`pvc.yaml`:
-
-```yaml
+YAML
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: my-pvc
+  name: web-pvc
+  namespace: webserver
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadOnlyMany
   resources:
     requests:
       storage: 1Gi
-```
-
-```bash
-# Create the PersistentVolumeClaim
-oc apply -f pvc.yaml
+Bash
+# Apply the PersistentVolumeClaim
+oc apply -f web-pvc.yaml
 
 # Step 5 — Verify the PVC is bound
-oc get pvc
-oc get pv
+oc get pvc web-pvc -n webserver
+oc get pv web-pv
 
-# Step 6-7 — Create the Pod and mount the PVC
-vi persistent-pod.yaml
-```
+# Step 6 — Create the Deployment
+vi deployment.yaml
+deployment.yaml:
 
-`persistent-pod.yaml`:
-
-```yaml
-apiVersion: v1
-kind: Pod
+YAML
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: persistent-pod
+  name: web-landing
+  namespace: webserver
 spec:
-  containers:
-  - name: nginx
-    image: bitnami/nginx
-    command:
-    - sh
-    - -c
-    - "touch /app/persistent.txt && sleep 3600"
-    volumeMounts:
-    - name: data-volume
-      mountPath: /app
-  volumes:
-  - name: data-volume
-    persistentVolumeClaim:
-      claimName: my-pvc
-```
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-landing
+  template:
+    metadata:
+      labels:
+        app: web-landing
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - mountPath: /usr/share/nginx/html
+              name: html-volume
+      volumes:
+        - name: html-volume
+          persistentVolumeClaim:
+            claimName: web-pvc
+Bash
+# Apply the Deployment
+oc apply -f deployment.yaml
 
-```bash
-# Create the Pod
-oc apply -f persistent-pod.yaml
+# Verify Deployment pods
+oc get pods -n webserver
 
-# Step 8 — Verify the mounted storage
-oc get pod persistent-pod
-oc exec persistent-pod -- df -h /app
-oc exec persistent-pod -- ls -la /app
+# Step 7 — Expose via Service and Secure Edge Route
+oc expose deployment web-landing --port=80 --target-port=80 -n webserver
 
-# Step 9 — Create a file in the persistent volume
-oc exec persistent-pod -- sh -c 'echo "Persistent storage works" > /app/test.txt'
-oc exec persistent-pod -- cat /app/test.txt
+oc create route edge web-route \
+  --service=web-landing \
+  --hostname=exoplanets-declarative-manifests.apps.ocp4.example.com \
+  -n webserver
 
-# Step 10 — Delete and recreate the Pod
-oc delete pod persistent-pod
-oc apply -f persistent-pod.yaml
-
-# Step 11 — Verify the file still exists
-oc exec persistent-pod -- cat /app/test.txt
-```
-
+# Step 8 — Verify Route accessibility
+oc get route web-route -n webserver
+curl -k [https://exoplanets-declarative-manifests.apps.ocp4.example.com](https://exoplanets-declarative-manifests.apps.ocp4.example.com)
 Expected:
 
-```text
-Persistent storage works
-```
-
-### Key Concepts
-
-```text
+Plaintext
+HTTP/1.1 200 OK
+(Contents of index.html mounted from the NFS volume)
+Key Concepts
+Plaintext
 PersistentVolume (PV)
-    → Storage resource provided by the cluster
+    → Cluster-wide storage resource backed by NFS
 
 PersistentVolumeClaim (PVC)
-    → Request for storage made by an application
+    → Request for NFS storage by the webserver project
 
-PV
-    ↓
-PVC
-    ↓
-Pod
-    ↓
-Mounted storage
+ReadOnlyMany (ROX)
+    → Volume can be mounted read-only by multiple Pods simultaneously across nodes
 
-ReadWriteOnce (RWO)
-    → Volume can be mounted read/write by one node
+Deployment Replicas (3)
+    → Scaled web application sharing the same NFS web root via PVC
 
-HostPath
-    → Storage backed by a directory on the node
+Edge Route (TLS)
+    → Exposes the application securely with TLS termination at the OpenShift Router
 
-Persistent storage
-    → Data survives Pod deletion/recreation
+<ElicitationsGroup message="Als je nog hulp nodig hebt bij het testen in je homelab:">
+  <Elicitation label="Imperative oc commands" query="Kan je de snelle CLI one-liners geven om de Service en Edge Route direct aan te maken?"/>
+  <Elicitation label="Permission Denied NFS" query="Wat moet ik doen als Nginx in de container een 'Permission denied' geeft op de NFS share?"/>
+  <Elicitation label="ReclaimPolicy toelichting" query="Wat is precies het verschil tussen ReclaimPolicy Retain en Delete op het EX280 examen?"/>
+</ElicitationsGroup>
 ```
 
 ---
