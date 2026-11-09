@@ -18,7 +18,7 @@
 - [Lab 14 — Configure Services](#lab-14--configure-services)
 - [Lab 15 — Manage Secrets](#lab-15--manage-secrets)
 - [Lab 16 — Manage Configuration Maps](#lab-16--manage-configuration-maps)
-- [Lab 17 — Persistent Storage](#lab-17--persistent-storage)
+- [Lab 17 — Mount Storage (PV, PVC, Deployment & Route](#lab-17--mount-storage-pv-pvc-deployment-route)
 - [Lab 18 — Storage Classes](#lab-18--storage-classes)
 - [Lab 19 — StatefulSets](#lab-19--statefulsets)
 - [Lab 20 — Mount Storage — PV and PVC](#lab-20--mount-storage--pv-and-pvc)
