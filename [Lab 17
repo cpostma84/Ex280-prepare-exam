@@ -1328,34 +1328,35 @@ Base64
 
 ## Lab 17 — Mount Storage (PV, PVC, Deployment & Route)
 
-**Objective:** Create and use persistent storage with PersistentVolumes (PV), PersistentVolumeClaims (PVC), Deployments and Routes in OpenShift using an NFS back-end.
+**Objective:** Create and use persistent storage with PersistentVolumes (PV), PersistentVolumeClaims (PVC), Deployments and Routes in OpenShift using an NFS backend.
 
 **Task details:**
-1. Inspect the existing NFS-backed StorageClass on the cluster to determine its details and Reclaim Policy
-2. Create a new project named `webserver`
-3. Create a PersistentVolume named `web-pv` with the following specifications:
-   * Access Mode: `ReadOnlyMany`
-   * Size: `1Gi`
-   * Reclaim Policy: Same as the existing StorageClass (`Retain`)
-   * Path: `/exports/nfs-share` (or `/exports-ocp4/page`)
-4. Create a PersistentVolumeClaim named `web-pvc` in the `webserver` project with:
-   * Size: Same as the PV (`1Gi`)
-   * Access Mode: Same as the PV (`ReadOnlyMany`)
-5. Verify that the PVC is successfully bound to the PV
-6. Deploy an application with the following requirements:
-   * Project: `webserver`
-   * Deployment name: `web-landing`
-   * Container image: `nginx:alpine`
-   * Replica count: `3`
-   * Mount `web-pvc` at `/usr/share/nginx/html`
-7. Expose the deployment via a Service and a secure Edge Route accessible at:
-   `https://exoplanets-declarative-manifests.apps.ocp4.example.com`
-8. Verify that all 3 Pods are running and that the web application responds correctly
 
-### Solution
+1. Inspect the existing NFS-backed StorageClass and determine its details and Reclaim Policy.
+2. Create a new project named `webserver`.
+3. Create a PersistentVolume named `web-pv` with the following specifications:
+   - Access Mode: `ReadOnlyMany`
+   - Size: `1Gi`
+   - Reclaim Policy: `Retain`
+   - NFS Path: `/exports/nfs-share` (or `/exports-ocp4/page`)
+4. Create a PersistentVolumeClaim named `web-pvc` in the `webserver` project with:
+   - Size: `1Gi`
+   - Access Mode: `ReadOnlyMany`
+5. Verify that the PVC is successfully bound to the PV.
+6. Deploy an application with the following requirements:
+   - Project: `webserver`
+   - Deployment name: `web-landing`
+   - Container image: `nginx:alpine`
+   - Replicas: `3`
+   - Mount `web-pvc` at `/usr/share/nginx/html`.
+7. Expose the Deployment via a Service and a secure Edge Route accessible at:
+   `https://exoplanets-declarative-manifests.apps.ocp4.example.com`
+8. Verify that all 3 Pods are running and that the web application responds correctly.
+
+**Solution**
 
 ```bash
-# Step 1 — Inspect the existing StorageClass
+# Step 1 — Inspect the StorageClass
 oc get storageclass
 oc describe storageclass <storageclass-name>
 
@@ -1364,9 +1365,11 @@ oc new-project webserver
 
 # Step 3 — Create the PersistentVolume
 vi web-pv.yaml
-web-pv.yaml:
+```
 
-YAML
+**web-pv.yaml**
+
+```yaml
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -1380,7 +1383,9 @@ spec:
   nfs:
     server: <NFS_SERVER_IP>
     path: /exports/nfs-share
-Bash
+```
+
+```bash
 # Apply the PersistentVolume
 oc apply -f web-pv.yaml
 
@@ -1389,9 +1394,11 @@ oc get pv web-pv
 
 # Step 4 — Create the PersistentVolumeClaim
 vi web-pvc.yaml
-web-pvc.yaml:
+```
 
-YAML
+**web-pvc.yaml**
+
+```yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -1403,7 +1410,9 @@ spec:
   resources:
     requests:
       storage: 1Gi
-Bash
+```
+
+```bash
 # Apply the PersistentVolumeClaim
 oc apply -f web-pvc.yaml
 
@@ -1413,9 +1422,11 @@ oc get pv web-pv
 
 # Step 6 — Create the Deployment
 vi deployment.yaml
-deployment.yaml:
+```
 
-YAML
+**deployment.yaml**
+
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1437,20 +1448,23 @@ spec:
           ports:
             - containerPort: 80
           volumeMounts:
-            - mountPath: /usr/share/nginx/html
-              name: html-volume
+            - name: html-volume
+              mountPath: /usr/share/nginx/html
       volumes:
         - name: html-volume
           persistentVolumeClaim:
             claimName: web-pvc
-Bash
+```
+
+```bash
 # Apply the Deployment
 oc apply -f deployment.yaml
 
-# Verify Deployment pods
+# Verify the Deployment and Pods
+oc get deployment web-landing -n webserver
 oc get pods -n webserver
 
-# Step 7 — Expose via Service and Secure Edge Route
+# Step 7 — Expose via Service and secure Edge Route
 oc expose deployment web-landing --port=80 --target-port=80 -n webserver
 
 oc create route edge web-route \
@@ -1458,36 +1472,27 @@ oc create route edge web-route \
   --hostname=exoplanets-declarative-manifests.apps.ocp4.example.com \
   -n webserver
 
-# Step 8 — Verify Route accessibility
+# Step 8 — Verify the Route
 oc get route web-route -n webserver
-curl -k [https://exoplanets-declarative-manifests.apps.ocp4.example.com](https://exoplanets-declarative-manifests.apps.ocp4.example.com)
-Expected:
 
-Plaintext
+# Test application access
+curl -k https://exoplanets-declarative-manifests.apps.ocp4.example.com
+```
+
+**Expected output:**
+
+```text
 HTTP/1.1 200 OK
 (Contents of index.html mounted from the NFS volume)
-Key Concepts
-Plaintext
-PersistentVolume (PV)
-    → Cluster-wide storage resource backed by NFS
+```
 
-PersistentVolumeClaim (PVC)
-    → Request for NFS storage by the webserver project
+**Key Concepts**
 
-ReadOnlyMany (ROX)
-    → Volume can be mounted read-only by multiple Pods simultaneously across nodes
-
-Deployment Replicas (3)
-    → Scaled web application sharing the same NFS web root via PVC
-
-Edge Route (TLS)
-    → Exposes the application securely with TLS termination at the OpenShift Router
-
-<ElicitationsGroup message="Als je nog hulp nodig hebt bij het testen in je homelab:">
-  <Elicitation label="Imperative oc commands" query="Kan je de snelle CLI one-liners geven om de Service en Edge Route direct aan te maken?"/>
-  <Elicitation label="Permission Denied NFS" query="Wat moet ik doen als Nginx in de container een 'Permission denied' geeft op de NFS share?"/>
-  <Elicitation label="ReclaimPolicy toelichting" query="Wat is precies het verschil tussen ReclaimPolicy Retain en Delete op het EX280 examen?"/>
-</ElicitationsGroup>
+- **PersistentVolume (PV):** Cluster-wide storage resource backed by NFS.
+- **PersistentVolumeClaim (PVC):** Request for storage by an application in a project.
+- **ReadOnlyMany (ROX):** Allows multiple nodes to mount the volume as read-only.
+- **Deployment replicas:** Three application Pods sharing the same NFS web root.
+- **Edge Route:** Exposes the application externally with TLS termination at the OpenShift Router.
 ```
 
 ---
