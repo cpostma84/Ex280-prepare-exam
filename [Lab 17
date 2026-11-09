@@ -22,8 +22,11 @@
 - [Lab 18 — Storage Classes](#lab-18--storage-classes)
 - [Lab 19 — StatefulSets](#lab-19--statefulsets)
 - [Lab 20 — Mount Storage — PV and PVC](#lab-20--mount-storage--pv-and-pvc)
+- [Lab 21 — ServiceAccounts and SCC](#lab-21--serviceaccounts-and-scc)
 
-Needs to be added:
+## Planned Labs
+
+The following labs still need to be added:
 Lab 21 — ServiceAccounts and SCC
 Lab 22 — Kustomize
 Lab 23 — Kustomize Overlays
@@ -36,6 +39,7 @@ Lab 29 — Project Templates and Developer Self-Service
 Lab 30 — CronJobs
 Lab 31 — Images, Tags, Digests and Resource Queries
 Lab 32 — OpenShift Troubleshooting
+
 ---
 
 ## Lab 1 — HTPasswd Identity Provider
@@ -49,7 +53,7 @@ Lab 32 — OpenShift Troubleshooting
 4. Wait for the OAuth pods to restart
 5. Verify the users and identities
 
-### Solution
+**Solution**
 
 **Step 1 — Create the htpasswd file**
 ```bash
@@ -119,7 +123,7 @@ oc get identities
 4. Change the password of alice to 'password'
 5. Verify alice can log in with the new password
 
-### Solution
+**Solution**
 
 **Step 1 — Remove ted from htpasswd and update the secret**
 ```bash
@@ -183,7 +187,7 @@ oc login -u alice -p password
 4. Remove alice from the testers group
 5. Verify only bob and charlie have access to the project
 
-### Solution
+**Solution**
 
 **Step 1 — Create the project**
 ```bash
@@ -226,7 +230,7 @@ oc get rolebindings -n manage-groups
 6. Grant user bob admin rights in the permissions project
 7. Create a group called developers and add user bob
 
-### Solution
+**Solution**
 
 **Step 1 — View cluster role bindings**
 ```bash
@@ -299,7 +303,7 @@ oc adm groups add-users developers bob
 - alice: not able to modify the cluster
 - Ensure mariam is the only user with permission to modify the cluster
 
-### Solution
+**Solution**
 
 ```bash
 # mariam: full cluster admin
@@ -332,7 +336,7 @@ oc adm policy remove-cluster-role-from-user self-provisioner alice
 - Create group heroes (member: alice) with admin rights for neptune, siren, triton, nagas
 - Create group wizards (member: ian) with view access for atlantis and edit access for siren
 
-### Solution
+**Solution**
 
 **Create projects**
 ```bash
@@ -398,7 +402,7 @@ oc adm policy who-can create deployments -n avalon | grep alice
 - The role should permit get, list and watch
 - Assign the viewnagas role to john
 
-### Solution
+**Solution**
 
 ```bash
 # Create the custom role
@@ -430,7 +434,7 @@ oc get rolebindings -n nagas
 - Maximum number of pods: 5
 - Maximum number of services: 3
 
-### Solution
+**Solution**
 
 ```bash
 # Create the ResourceQuota
@@ -444,9 +448,9 @@ oc describe quota neptune-quota -n neptune
 
 ---
 
-# Lab 7 — LimitRange
+## Lab 7 — LimitRange
 
-### Task
+**Task details:**
 
 Create a LimitRange named `avalon-limits` in the `avalon` namespace.
 
@@ -459,7 +463,7 @@ Create a LimitRange named `avalon-limits` in the `avalon` namespace.
   - maximum limit: `250m`
   - default request: `100m`
 
-### Solution
+**Solution**
 
 ```bash
 # Step 1 — Switch to the avalon project
@@ -493,7 +497,7 @@ oc describe limitrange avalon-limits
 9. Restart the deployment
 10. Delete all resources using the manifest file
 
-### Solution
+**Solution**
 
 ```bash
 # Step 1 — Create the project and generate the manifest
@@ -648,7 +652,7 @@ helm uninstall example-app
 6. View the logs of the job pod
 7. Delete the job manually
 
-### Solution
+**Solution**
 
 ```bash
 # Step 1+2 — Generate and save the manifest
@@ -711,7 +715,7 @@ oc delete job one-time-task
 12. Resume the deployment
 13. Change the deployment strategy to Recreate and apply
 
-### Solution
+**Solution**
 
 **Step 1 — Create the project**
 ```bash
@@ -811,7 +815,7 @@ oc apply -f httpd-deployment.yaml
 11. Delete the ReplicaSet directly and observe what happens
 12. Delete the Deployment
 
-### Solution
+**Solution**
 
 **Step 1 — Create the ReplicaSet manifest**
 ```bash
@@ -906,7 +910,7 @@ oc delete rs my-replicaset
 7. Remove the tier label from the pod
 8. Verify the tier label is gone
 
-### Solution
+**Solution**
 
 **Step 1 — Create the Pod manifest**
 ```bash
@@ -1004,7 +1008,7 @@ oc describe pod my-labeled-pod | grep Labels
 8. Describe the route to see the details
 9. Test the route by curling the hostname
 
-### Solution
+**Solution**
 
 ```bash
 # Step 1 — Create the project
@@ -1054,7 +1058,7 @@ curl http://my-app.httpdemo.apps-crc.testing
 11. Display `my-secret` as YAML and inspect the Base64 encoded values
 12. Decode one of the Base64 encoded Secret values
 
-### Solution
+**Solution**
 
 ```bash
 # Step 1 — Create the project
@@ -1234,7 +1238,7 @@ Base64
 11. Use `my-config` as environment variables in a Pod
 12. Explain the difference between ConfigMaps and Secrets
 
-### Solution
+**Solution**
 
 ```bash
 # Step 1 — Create the project
@@ -1515,7 +1519,7 @@ HTTP/1.1 200 OK
 11. Inspect the StorageClass, PVC and PV
 12. Explain the difference between a manually created PV and dynamically provisioned storage
 
-### Solution
+**Solution**
 
 ```bash
 # Step 1 — Create the project
@@ -1646,7 +1650,7 @@ Dynamic provisioning
 11. Verify that the new Pod receives its own PersistentVolumeClaim
 12. Delete a Pod and verify that it is recreated with the same name
 
-### Solution
+**Solution**
 
 ```bash
 # Step 1 — Create the project
@@ -1778,7 +1782,7 @@ StatefulSet
     → Dedicated storage per Pod
 ```
 
-# Lab 20 — Mount Storage — PV and PVC
+## Lab 20 — Mount Storage — PV and PVC
 
 ## Task
 
@@ -1811,7 +1815,7 @@ Deploy:
 - Hostname:
   `exoplanets-declarative-manifests.apps.ocp4.example.com`
 
-### Solution
+**Solution**
 
 ```bash
 # Step 1 — Create project
@@ -1884,6 +1888,7 @@ oc get pods
 oc get svc
 oc get route
 ```
+
 ## Lab 21 — ServiceAccounts and SCC
 
 **Objective:** Configure a ServiceAccount with permission to run Pods as any user and deploy an application using that ServiceAccount.
