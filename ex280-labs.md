@@ -24,7 +24,7 @@
 - [Lab 20 — Mount Storage — PV and PVC](#lab-20--mount-storage--pv-and-pvc)
 - [Lab 21 — ServiceAccounts and SCC](#lab-21--serviceaccounts-and-scc)
 - [Lab 22 — Install and Configure an Operator (File Integrity Operator)](#lab-22--install-and-configure-an-operator-file-integrity-operator)
-- [Lab 23 — Networking: Expose Applications through a Secure Route)
+- [Lab 23 — Networking: Expose Applications through a Secure Route](#lab-23--networking-expose-applications-through-a-secure-route)
 
 ## Planned Labs
 
