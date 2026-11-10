@@ -23,6 +23,7 @@
 - [Lab 19 — StatefulSets](#lab-19--statefulsets)
 - [Lab 20 — Mount Storage — PV and PVC](#lab-20--mount-storage--pv-and-pvc)
 - [Lab 21 — ServiceAccounts and SCC](#lab-21--serviceaccounts-and-scc)
+- [Lab 22 — Install and Configure an Operator (File Integrity Operator)](#lab-22--install-and-configure-an-operator-file-integrity-operator)
 
 ## Planned Labs
 
@@ -1929,3 +1930,64 @@ oc get pods,svc,routes -n production
 ```
 
 **Success criteria:** The `redhat-sa` ServiceAccount exists, is allowed to use `anyuid`, and the existing `team` Deployment uses that ServiceAccount without adding or removing application configuration components.
+
+## Lab 22 — Install and Configure an Operator (File Integrity Operator)
+
+**Objective:** Install and configure the File Integrity Operator in OpenShift.
+
+**Task details:**
+1. Install the File Integrity Operator.
+2. Install the Operator in the `openshift-integrity` project.
+3. Set the approval strategy to `Automatic`.
+4. Enable cluster monitoring for the `openshift-file-integrity` project.
+5. Verify that the Operator is successfully installed.
+
+**Solution**
+
+```bash
+# Step 1 — Create the Operator project
+oc new-project openshift-integrity
+
+# Step 2 — Create the project for File Integrity monitoring
+oc new-project openshift-file-integrity
+
+# Step 3 — Enable cluster monitoring
+oc label namespace openshift-file-integrity \
+  openshift.io/cluster-monitoring=true
+```
+
+**Step 4 — Install the File Integrity Operator**
+
+1. Open the OpenShift Web Console.
+2. Navigate to **Ecosystem → Software Catalog (OperatorHub)**.
+3. Search for `File Integrity Operator`.
+4. Select the Operator and click **Install**.
+5. Configure the installation:
+   - Installed Namespace: `openshift-integrity`
+   - Update Approval: `Automatic`
+6. Click **Install**.
+
+**Step 5 — Verify the installation**
+
+```bash
+# Check the Subscription
+oc get subscriptions -n openshift-integrity
+
+# Check the ClusterServiceVersion
+oc get csv -n openshift-integrity
+
+# Check Operator Pods
+oc get pods -n openshift-integrity
+
+# Verify cluster monitoring label
+oc get namespace openshift-file-integrity --show-labels
+```
+
+**Key Concepts**
+
+- **OperatorHub:** Catalog for discovering and installing OpenShift Operators.
+- **Subscription:** Defines the Operator package, channel and update approval strategy.
+- **Automatic approval:** Automatically approves Operator update InstallPlans.
+- **ClusterServiceVersion (CSV):** Represents an installed Operator version.
+- **Cluster monitoring:** Enables monitoring of user workloads in a namespace.
+- **Namespace label:** `openshift.io/cluster-monitoring=true` enables monitoring for the namespace.
