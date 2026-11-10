@@ -24,6 +24,7 @@
 - [Lab 20 — Mount Storage — PV and PVC](#lab-20--mount-storage--pv-and-pvc)
 - [Lab 21 — ServiceAccounts and SCC](#lab-21--serviceaccounts-and-scc)
 - [Lab 22 — Install and Configure an Operator (File Integrity Operator)](#lab-22--install-and-configure-an-operator-file-integrity-operator)
+- [Lab 23 — Networking: Expose Applications through a Secure Route)
 
 ## Planned Labs
 
@@ -1991,3 +1992,109 @@ oc get namespace openshift-file-integrity --show-labels
 - **ClusterServiceVersion (CSV):** Represents an installed Operator version.
 - **Cluster monitoring:** Enables monitoring of user workloads in a namespace.
 - **Namespace label:** `openshift.io/cluster-monitoring=true` enables monitoring for the namespace.
+
+## Lab 23 — Networking: Expose Applications through a Secure Route
+
+**Objective:** Deploy an application in OpenShift and secure external access using an Edge Route with a CA-signed SSL certificate.
+
+**Task details:**
+1. Create a project named `business`.
+2. Create a Deployment named `marketing`.
+3. Use the image `nginxinc/nginx-unprivileged:stable`.
+4. Expose the Deployment through a Service.
+5. Create an unsecured Route named `marketing-route`.
+6. Generate an SSL certificate and private key using the provided `cert-manager.sh` script.
+7. The certificate must be CA-signed and use the following subject:
+   `/C=US/ST=NV/L=California/O=Hat/OU=IT/CN=webapplication.apps.domain1.exampledomain.com`
+8. Configure the existing Route `marketing-route` with Edge TLS termination.
+9. The application must be accessible only through:
+   `https://webapplication.apps.domain1.exampledomain.com`
+10. Ensure that client-to-route communication uses HTTPS and router-to-backend communication remains HTTP.
+
+**Solution**
+
+```bash
+# Step 1 — Create the project
+oc new-project business
+
+# Step 2 — Create the Deployment
+oc create deployment marketing \
+  --image=nginxinc/nginx-unprivileged:stable
+
+# Step 3 — Expose the Deployment through a Service
+oc expose deployment marketing --port=8080 --target-port=8080
+
+# Step 4 — Create an unsecured Route
+oc create route edge marketing-route \
+  --service=marketing \
+  --port=8080 \
+  --hostname=webapplication.apps.domain1.exampledomain.com
+
+# Step 5 — Verify the Route
+oc get route marketing-route
+```
+
+**Step 6 — Generate the SSL certificate**
+
+Use the provided `cert-manager.sh` script to generate a CA-signed certificate and private key.
+
+The certificate must contain the following subject:
+
+```text
+/C=US/ST=NV/L=California/O=Hat/OU=IT/CN=webapplication.apps.domain1.exampledomain.com
+```
+
+Check the script's usage instructions to determine the required arguments and output filenames.
+
+For this lab, assume the generated files are:
+
+- `tls.crt` — CA-signed certificate
+- `tls.key` — Private key
+
+If the script also provides a CA certificate, keep that file available.
+
+**Step 7 — Configure the Route with a CA-signed certificate using the Web Console**
+
+1. Log in to the OpenShift Web Console.
+2. Select the `business` project.
+3. Navigate to **Networking → Routes**.
+4. Find the Route named `marketing-route`.
+5. Open the Route and select **Actions → Edit Route**.
+6. Locate the **Security** or **TLS Settings** section.
+7. Enable **Secure route**.
+8. Configure the following settings:
+   - **TLS Termination:** `Edge`
+   - **Insecure Traffic:** `Redirect`
+9. Open the generated certificate file `tls.crt` on your workstation and copy its complete contents.
+10. Paste the certificate into the **Certificate** field.
+11. Open the private key file `tls.key` and copy its complete contents.
+12. Paste the private key into the **Private Key** field.
+13. If the certificate was signed by a separate CA, copy the CA certificate into the **CA Certificate** field.
+14. Save the Route configuration.
+
+**Step 8 — Verify the Route**
+
+Navigate to **Networking → Routes** and open `marketing-route`.
+
+Verify:
+- The Route is secure.
+- TLS termination is set to `Edge`.
+- HTTP traffic is redirected to HTTPS.
+- The Route uses the correct hostname.
+
+**Step 9 — Test HTTPS access**
+
+```bash
+curl -k https://webapplication.apps.domain1.exampledomain.com
+```
+Expected result: The Nginx welcome page is returned over HTTPS.
+
+### Key Concepts
+
+- **Route:** Exposes an application outside the OpenShift cluster.
+- **Edge TLS termination:** TLS is terminated at the OpenShift Router.
+- **Backend HTTP:** Communication between the Router and application remains unencrypted HTTP.
+- **Certificate:** Public certificate used to secure the HTTPS connection.
+- **Private key:** Used by the Router for TLS encryption.
+- **CA-signed certificate:** Certificate signed by a trusted Certificate Authority.
+- **InsecureEdgeTerminationPolicy: Redirect:** Redirects HTTP requests to HTTPS.
