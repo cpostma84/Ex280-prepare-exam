@@ -25,6 +25,7 @@
 - [Lab 21 — ServiceAccounts and SCC](#lab-21--serviceaccounts-and-scc)
 - [Lab 22 — Install and Configure an Operator (File Integrity Operator)](#lab-22--install-and-configure-an-operator-file-integrity-operator)
 - [Lab 23 — Networking: Expose Applications through a Secure Route](#lab-23--networking-expose-applications-through-a-secure-route)
+- [Lab 24 — Automatically Scale an Application (Horizontal Pod Autoscaler)](#lab-24--automatically-scale-an-application-horizontal-pod-autoscaler)
 
 ## Planned Labs
 
@@ -2098,3 +2099,75 @@ Expected result: The Nginx welcome page is returned over HTTPS.
 - **Private key:** Used by the Router for TLS encryption.
 - **CA-signed certificate:** Certificate signed by a trusted Certificate Authority.
 - **InsecureEdgeTerminationPolicy: Redirect:** Redirects HTTP requests to HTTPS.
+
+## Lab 24 — Automatically Scale an Application (Horizontal Pod Autoscaler)
+
+**Objective:** Configure horizontal pod autoscaling (HPA) to automatically scale an application based on CPU utilization.
+
+**Task details:**
+1. Use an existing OpenShift project or create a new project.
+2. Create a Deployment named `titan`.
+3. Configure the CPU request to `50m` per Pod.
+4. Configure the CPU limit to `250m` per Pod.
+5. Configure horizontal pod autoscaling for the `titan` Deployment with:
+   - Minimum number of Pods: `2`
+   - Maximum number of Pods: `5`
+   - Target average CPU utilization: `75%`
+6. Verify the HPA configuration and scaling status.
+
+**Solution**
+
+```bash
+# Step 1 — Select an existing project
+oc project <project-name>
+
+# Alternatively, create a new project
+oc new-project autoscale-demo
+
+# Step 2 — Create the Deployment
+oc create deployment titan --image=nginxinc/nginx-unprivileged:stable
+
+# Step 3 — Configure CPU requests and limits
+oc set resources deployment titan \
+  --requests=cpu=50m \
+  --limits=cpu=250m
+
+# Step 4 — Configure horizontal pod autoscaling
+oc autoscale deployment titan \
+  --min=2 \
+  --max=5 \
+  --cpu-percent=75
+
+# Step 5 — Verify the Deployment
+oc get deployment titan
+
+# Step 6 — Verify the HPA
+oc get hpa titan
+
+# View detailed HPA information
+oc describe hpa titan
+
+# Verify the Pods
+oc get pods
+```
+
+**Expected result:**
+
+The HPA should show:
+
+```text
+NAME    REFERENCE           TARGETS   MINPODS   MAXPODS
+titan   Deployment/titan    0%/75%    2         5
+```
+
+The CPU utilization may initially show `<unknown>` while metrics are being collected.
+
+### Key Concepts
+
+- **Horizontal Pod Autoscaler (HPA):** Automatically adjusts the number of Pod replicas based on resource utilization.
+- **Minimum replicas:** Minimum number of Pods.
+- **Maximum replicas:** Maximum number of Pods.
+- **CPU request:** CPU amount used as the reference for calculating utilization.
+- **CPU limit:** Maximum CPU amount a container can use.
+- **CPU utilization target:** Average CPU utilization relative to the configured CPU request.
+- **oc autoscale:** Creates an HPA for an existing Deployment.
