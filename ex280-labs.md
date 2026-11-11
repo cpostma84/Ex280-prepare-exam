@@ -26,6 +26,7 @@
 - [Lab 22 — Install and Configure an Operator (File Integrity Operator)](#lab-22--install-and-configure-an-operator-file-integrity-operator)
 - [Lab 23 — Networking: Expose Applications through a Secure Route](#lab-23--networking-expose-applications-through-a-secure-route)
 - [Lab 24 — Automatically Scale an Application (Horizontal Pod Autoscaler)](#lab-24--automatically-scale-an-application-horizontal-pod-autoscaler)
+- [Lab 25 — Configure a Project Template with a LimitRange](#lab-25--configure-a-project-template-with-a-limitrange)
 
 ## Planned Labs
 
@@ -644,31 +645,37 @@ helm uninstall example-app
 
 ## Lab 10 — Deploy Jobs for One-time Tasks
 
-**Objective:** Create and manage a Job in OpenShift for a one-time task
+**Objective:** Create and manage a Job in OpenShift for a one-time task.
 
 **Task details:**
-1. Generate a Job manifest named one-time-task using image bitnami/nginx that runs the command ls
-2. Save the manifest to a file named myjob.yaml
-3. Edit the manifest to add backoffLimit: 2 and ttlSecondsAfterFinished: 60
-4. Deploy the job
-5. Monitor the job status
-6. View the logs of the job pod
-7. Delete the job manually
+
+1. Generate a Job manifest named `one-time-task` using image `bitnami/nginx` that runs the command `ls`.
+2. Save the manifest to a file named `myjob.yaml`.
+3. Edit the manifest to add `backoffLimit: 2` and `ttlSecondsAfterFinished: 60`.
+4. Deploy the Job.
+5. Monitor the Job status.
+6. View the logs of the Job Pod.
+7. Delete the Job manually.
 
 **Solution**
 
+**Step 1 — Generate and save the manifest**
+
 ```bash
-# Step 1+2 — Generate and save the manifest
 oc create job one-time-task \
   --image=bitnami/nginx \
   --dry-run=client -o yaml \
   -- ls > myjob.yaml
+```
 
-# Step 3 — Edit the manifest
+**Step 2 — Edit the manifest**
+
+```bash
 vi myjob.yaml
 ```
 
-Ensure the spec section looks like this:
+Ensure the `spec` section looks like this:
+
 ```yaml
 spec:
   backoffLimit: 2
@@ -682,23 +689,32 @@ spec:
       restartPolicy: Never
 ```
 
-```bash
-# Step 4 — Deploy the job
-oc create -f myjob.yaml
+**Step 3 — Deploy the Job**
 
-# Step 5 — Monitor the job
+```bash
+oc create -f myjob.yaml
+```
+
+**Step 4 — Monitor the Job status**
+
+```bash
 oc get jobs
 oc get pods
+```
 
-# Step 6 — View the logs
+**Step 5 — View the Job Pod logs**
+
+```bash
 oc logs <pod-name>
+```
 
-# Step 7 — Delete the job
+**Step 6 — Delete the Job manually**
+
+```bash
 oc delete job one-time-task
 ```
 
 ---
-
 ## Lab 11 — Manage Application Deployments
 
 **Objective:** Deploy, update, scale, rollback and monitor an application deployment
@@ -2171,3 +2187,254 @@ The CPU utilization may initially show `<unknown>` while metrics are being colle
 - **CPU limit:** Maximum CPU amount a container can use.
 - **CPU utilization target:** Average CPU utilization relative to the configured CPU request.
 - **oc autoscale:** Creates an HPA for an existing Deployment.
+
+
+---
+
+## Lab 25 — Configure a Project Template with a LimitRange
+
+**Objective:** Configure OpenShift so that every newly created project automatically receives a LimitRange with predefined memory constraints.
+
+**Task details:**
+
+1. Generate the default OpenShift Project Template.
+2. Save it as `project-template.yaml`.
+3. Generate a LimitRange YAML using the Web Console.
+4. Add the LimitRange to the Project Template.
+5. Set the LimitRange name to `<PROJECT_NAME>-limits`.
+6. Apply the Project Template in the `openshift-config` namespace.
+7. Configure OpenShift to use the Project Template automatically.
+8. Monitor the OpenShift API Server pods while the configuration is being applied.
+9. Create a new test project.
+10. Verify that the LimitRange is automatically created.
+
+**Solution**
+
+**Step 1 — Generate the Project Template**
+
+```bash
+oc adm create-bootstrap-project-template -o yaml > project-template.yaml
+```
+
+**Step 2 — Edit the Project Template**
+
+```bash
+vi project-template.yaml
+```
+
+Ensure the template name is:
+
+```yaml
+metadata:
+  name: project-request
+```
+
+Do not remove the existing objects or RoleBindings.
+
+**Step 3 — Create the LimitRange using the Web Console**
+
+1. Switch to the **Administrator** view.
+2. Navigate to **Administration → Limit Ranges**.
+3. Use the YAML editor to generate a LimitRange.
+4. Configure the following requirements:
+
+| Setting | Value |
+|---|---|
+| Type | Container |
+| Minimum memory | `128Mi` |
+| Maximum memory | `256Mi` |
+| Default memory limit | `256Mi` |
+| Default memory request | `256Mi` |
+
+The generated LimitRange YAML should look like this:
+
+```yaml
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mem-limit-range
+  namespace: default
+spec:
+  limits:
+  - default:
+      memory: 256Mi
+    defaultRequest:
+      memory: 256Mi
+    type: Container
+    min:
+      memory: 128Mi
+    max:
+      memory: 256Mi
+```
+
+Copy this YAML. Do not create the LimitRange directly in the project. It will be added to the Project Template instead.
+
+**Step 4 — Add the LimitRange to the Project Template**
+
+Open `project-template.yaml` and find the `objects:` section.
+
+Leave the existing RoleBinding objects untouched. Add the LimitRange as another object in the `objects` list:
+
+```yaml
+- apiVersion: v1
+  kind: LimitRange
+  metadata:
+    name: mem-limit-range
+    namespace: default
+  spec:
+    limits:
+    - default:
+        memory: 256Mi
+      defaultRequest:
+        memory: 256Mi
+      type: Container
+      min:
+        memory: 128Mi
+      max:
+        memory: 256Mi
+```
+
+**Step 5 — Replace the LimitRange name and namespace**
+
+Change the LimitRange metadata to use the project name variable:
+
+```yaml
+metadata:
+  name: ${PROJECT_NAME}-limits
+  namespace: ${PROJECT_NAME}
+```
+
+The complete LimitRange object should now look like this:
+
+```yaml
+- apiVersion: v1
+  kind: LimitRange
+  metadata:
+    name: ${PROJECT_NAME}-limits
+    namespace: ${PROJECT_NAME}
+  spec:
+    limits:
+    - default:
+        memory: 256Mi
+      defaultRequest:
+        memory: 256Mi
+      type: Container
+      min:
+        memory: 128Mi
+      max:
+        memory: 256Mi
+```
+
+OpenShift replaces `${PROJECT_NAME}` with the name of the newly created project.
+
+**Step 6 — Save and apply the Project Template**
+
+```bash
+oc apply -f project-template.yaml -n openshift-config
+```
+
+Verify the template:
+
+```bash
+oc get templates -n openshift-config
+```
+
+The template should be named `project-request`.
+
+**Step 7 — Configure OpenShift to use the Project Template**
+
+Edit the cluster project configuration:
+
+```bash
+oc edit projects.config.openshift.io cluster
+```
+
+Find:
+
+```yaml
+spec: {}
+```
+
+Replace it with:
+
+```yaml
+spec:
+  projectRequestTemplate:
+    name: project-request
+```
+
+Save and exit.
+
+This instructs OpenShift to use the `project-request` template whenever a new project is created through the project request mechanism.
+
+**Step 8 — Monitor the OpenShift API Server pods**
+
+The configuration change may trigger an update of the OpenShift API Server. Monitor the pods:
+
+```bash
+oc get pods -n openshift-apiserver -w
+```
+
+Wait until the API Server pods are running and ready again. Press `Ctrl+C` to stop monitoring.
+
+**Step 9 — Create a new test project**
+
+```bash
+oc new-project sample-project
+```
+
+**Step 10 — Verify the automatically created LimitRange**
+
+```bash
+oc get limitrange
+```
+
+Expected LimitRange name:
+
+```text
+sample-project-limits
+```
+
+Inspect the LimitRange:
+
+```bash
+oc describe limitrange sample-project-limits
+```
+
+Verify the following values:
+
+| Setting | Expected value |
+|---|---|
+| Minimum memory | `128Mi` |
+| Maximum memory | `256Mi` |
+| Default memory limit | `256Mi` |
+| Default memory request | `256Mi` |
+
+### Key Concepts
+
+| Command / Concept | Purpose |
+|---|---|
+| `oc adm create-bootstrap-project-template` | Generates the default Project Template. |
+| `${PROJECT_NAME}` | Variable containing the name of the newly created project. |
+| `oc apply -f project-template.yaml -n openshift-config` | Creates or updates the Project Template. |
+| `oc edit projects.config.openshift.io cluster` | Configures the cluster to use the Project Template. |
+| `projectRequestTemplate` | Specifies which template OpenShift uses for new project requests. |
+| `LimitRange` | Defines minimum, maximum and default resource values. |
+
+**EX280 Exam Tips:**
+
+- Creating the Project Template alone is not sufficient. You must also configure OpenShift to use it.
+- The template must be stored in the `openshift-config` namespace.
+- The template name must match the name configured in `projectRequestTemplate`.
+- The `${PROJECT_NAME}` variable ensures that every new project gets its own LimitRange name.
+- Existing projects are not automatically updated. The template applies to new project requests.
+- A LimitRange controls individual container or Pod resource constraints; a ResourceQuota controls total resource consumption within a project.
+
+**Remember the sequence:**
+
+1. Generate the bootstrap template.
+2. Generate the LimitRange YAML.
+3. Add the LimitRange to the template.
+4. Apply the template.
+5. Configure `projectRequestTemplate`.
+6. Create a new project and verify the result.
