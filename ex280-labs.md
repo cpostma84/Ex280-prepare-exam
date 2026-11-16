@@ -1656,19 +1656,29 @@ Dynamic provisioning
 **Objective:** Deploy and manage stateful applications using StatefulSets with stable identities and dedicated persistent storage
 
 **Task details:**
-1. Create a new project called `stateful-demo`
-2. Create a headless Service called `mysql` with `clusterIP: None`
-3. Create a StatefulSet called `mysql` with 2 replicas
-4. Use the `bitnami/mysql` image
-5. Configure the StatefulSet to use the `mysql` headless Service
-6. Create a `volumeClaimTemplate` requesting 1Gi of storage for each Pod
-7. Apply the Service and StatefulSet
-8. Verify the StatefulSet, Pods and Service
-9. Verify that each Pod has its own PersistentVolumeClaim
-10. Scale the StatefulSet to 3 replicas
-11. Verify that the new Pod receives its own PersistentVolumeClaim
-12. Delete a Pod and verify that it is recreated with the same name
+Preparation
 
+Create a project called stateful-demo.
+Create a headless Service called mysql with clusterIP: None.
+
+StatefulSet
+
+Create a StatefulSet called mysql with the following properties:
+2 replicas
+image bitnami/mysql
+serviceName: mysql (uses the headless Service from step 2)
+a volumeClaimTemplate requesting 1Gi of storage for each Pod
+Apply the Service and the StatefulSet.
+
+Verification
+
+Verify the StatefulSet, the Pods and the Service.
+Verify that each Pod has its own PersistentVolumeClaim.
+
+Scaling and recovery
+
+Scale the StatefulSet to 3 replicas and verify that the new Pod receives its own PersistentVolumeClaim.
+Delete a Pod and verify that it is recreated with the same name.
 **Solution**
 
 ```bash
