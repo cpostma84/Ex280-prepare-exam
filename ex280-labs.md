@@ -27,6 +27,9 @@
 - [Lab 23 — Networking: Expose Applications through a Secure Route](#lab-23--networking-expose-applications-through-a-secure-route)
 - [Lab 24 — Automatically Scale an Application (Horizontal Pod Autoscaler)](#lab-24--automatically-scale-an-application-horizontal-pod-autoscaler)
 - [Lab 25 — Configure a Project Template with a LimitRange](#lab-25--configure-a-project-template-with-a-limitrange)
+- [Lab 26 — Configure Network Policies](#lab-26--configure-network-policies)
+
+  
 
 ## Planned Labs
 
@@ -2448,3 +2451,137 @@ Verify the following values:
 4. Apply the template.
 5. Configure `projectRequestTemplate`.
 6. Create a new project and verify the result.
+
+## Lab 26 — Configure Network Policies
+
+**Objective:** Configure network traffic restrictions between OpenShift projects using NetworkPolicies.
+
+**Task details:**
+
+An application is running in two OpenShift projects:
+
+- `frontend`
+- `backend`
+
+The backend project contains a MySQL application that must only be accessible from an authorized frontend application.
+
+Configure a NetworkPolicy with the following requirements:
+
+1. Create a NetworkPolicy named `db-allow-conn` in the `backend` project.
+2. Use the Pod selector `network.openshift.io/policy-group=backend` to select the backend Pods.
+3. Allow incoming traffic only from Pods in namespaces with the label `team=security`.
+4. Additionally, restrict access to Pods with the label `deployment=sc`.
+5. Allow only TCP traffic on port `3306`.
+6. Verify the configuration by checking the application logs in the `frontend` project.
+
+**Preparation:**
+
+Use the separate setup script to prepare the frontend and backend projects and deploy the applications. The script also creates the default-deny NetworkPolicy.
+
+**Solution**
+
+**Step 1 — Open the OpenShift Web Console**
+
+1. Log in to the OpenShift Web Console.
+2. Switch to the **Administrator** perspective.
+3. Navigate to **Networking → NetworkPolicies**.
+4. Select the `backend` project.
+5. Click **Create NetworkPolicy**.
+
+**Step 2 — Create the NetworkPolicy**
+
+Configure the following:
+
+| Setting | Value |
+|---|---|
+| Name | `db-allow-conn` |
+| Project | `backend` |
+| Policy type | Ingress |
+| Pod selector | `network.openshift.io/policy-group=backend` |
+
+**Step 3 — Configure the Ingress rule**
+
+Configure the source selectors:
+
+Namespace selector:
+
+| Key | Value |
+|---|---|
+| `team` | `security` |
+
+Pod selector:
+
+| Key | Value |
+|---|---|
+| `deployment` | `sc` |
+
+Configure the allowed port:
+
+| Setting | Value |
+|---|---|
+| Protocol | TCP |
+| Port | `3306` |
+
+Save the NetworkPolicy.
+
+**Step 4 — Verify the configuration**
+
+Navigate to **Networking → NetworkPolicies** in the `backend` project and inspect `db-allow-conn`.
+
+Verify that the Pod selector, namespace selector, Pod selector and port match the task requirements.
+
+**Step 5 — Verify application connectivity**
+
+1. Navigate to **Workloads → Deployments**.
+2. Select project `frontend`.
+3. Open Deployment `frontend-checker`.
+4. Open its Pod.
+5. Select the **Logs** tab.
+6. Verify whether the frontend application can connect to MySQL.
+
+Alternatively, use:
+
+```bash
+oc logs deployment/frontend-checker -n frontend
+```
+
+### Key Concepts
+
+- **NetworkPolicy:** Controls network traffic to and from selected Pods.
+- **Pod selector:** Determines which Pods the policy protects.
+- **Namespace selector:** Selects namespaces based on labels.
+- **Ingress:** Controls incoming network traffic.
+- **NetworkPolicies are additive:** Multiple policies can allow traffic to the same Pod.
+
+**EX280 Exam Tips:**
+
+- Namespace and Pod selectors in the same `from` entry are combined with AND logic.
+- A NetworkPolicy only applies to Pods selected by its `podSelector`.
+- Always verify namespace labels and Pod labels.
+- A default-deny policy does not override an explicit allow rule in another applicable policy.
+
+---
+
+### Appendix — Cleanup script
+
+Save as `cleanup-network-policy-lab.sh`.
+
+```bash
+#!/bin/bash
+set -e
+
+echo "Deleting frontend project..."
+oc delete project frontend --ignore-not-found
+
+echo "Deleting backend project..."
+oc delete project backend --ignore-not-found
+
+echo "Network Policy lab environment removed."
+```
+
+Run:
+
+```bash
+chmod +x cleanup-network-policy-lab.sh
+./cleanup-network-policy-lab.sh
+```
