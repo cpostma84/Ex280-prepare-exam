@@ -28,6 +28,7 @@
 - [Lab 24 — Automatically Scale an Application (Horizontal Pod Autoscaler)](#lab-24--automatically-scale-an-application-horizontal-pod-autoscaler)
 - [Lab 25 — Configure a Project Template with a LimitRange](#lab-25--configure-a-project-template-with-a-limitrange)
 - [Lab 26 — Configure Network Policies](#lab-26--configure-network-policies)
+- [Lab 27 — Configure Liveness Probes](#lab-27--configure-liveness-probes)
 
   
 
@@ -2584,4 +2585,85 @@ Run:
 ```bash
 chmod +x cleanup-network-policy-lab.sh
 ./cleanup-network-policy-lab.sh
+```
+## Lab 27 — Configure Liveness Probes
+
+**Objective:** Configure a liveness probe for an existing application Deployment in OpenShift.
+
+**Task details:**
+
+An application named `cart` is deployed in the `crt-kubernetesway-dev` project using a single-container setup.
+
+Configure a liveness probe for this container with the following requirements:
+
+1. Use a TCP socket check.
+2. Configure the probe to check port `8080`.
+3. Set the initial delay to `10` seconds.
+4. Set the timeout to `30` seconds.
+
+**Solution**
+
+**Step 1 — Select the project**
+
+```bash
+oc project crt-kubernetesway-dev
+```
+
+**Step 2 — Configure the liveness probe**
+
+```bash
+oc set probe deployment/cart \
+  --liveness=true \
+  --initial-delay-seconds=10 \
+  --timeout-seconds=30 \
+  --open-tcp=8080
+```
+
+**Step 3 — Verify the configuration**
+
+```bash
+oc get deployment cart -o yaml
+```
+
+Check the container configuration for:
+
+```yaml
+livenessProbe:
+  tcpSocket:
+    port: 8080
+  initialDelaySeconds: 10
+  timeoutSeconds: 30
+```
+
+You can also inspect the Deployment:
+
+```bash
+oc describe deployment cart
+```
+
+### Key Concepts
+
+| Setting | Purpose |
+|---|---|
+| `livenessProbe` | Checks whether the container is still healthy. |
+| `tcpSocket` | Checks whether a TCP connection can be established on the specified port. |
+| `port: 8080` | Port used for the health check. |
+| `initialDelaySeconds: 10` | Waits 10 seconds after container startup before the first probe. |
+| `timeoutSeconds: 30` | Allows up to 30 seconds for each probe to complete. |
+
+**EX280 Exam Tips:**
+
+- A failed liveness probe can cause Kubernetes to restart the container.
+- A liveness probe checks whether the application is still running correctly.
+- A readiness probe determines whether the application is ready to receive traffic.
+- A startup probe gives applications additional time to start.
+- Use `oc set probe` to configure probes directly from the command line.
+
+**Remember the command:**
+
+```bash
+oc set probe deployment/NAME --liveness=true \
+  --open-tcp=PORT \
+  --initial-delay-seconds=SECONDS \
+  --timeout-seconds=SECONDS
 ```
