@@ -1258,7 +1258,7 @@ Base64
 8. Mount `nginx-config` as a volume at `/app`
 9. Verify that `index.html` is available inside the Pod
 10. Expose the Pod and use port forwarding to access the custom web page
-11. Use `my-config` as environment variables in a Pod
+11. Create a Pod named var-pod using the bitnami/nginx image and configure it to use all key-value pairs from the my-config ConfigMap as environment             variables.
 12. Explain the difference between ConfigMaps and Secrets
 
 **Solution**
