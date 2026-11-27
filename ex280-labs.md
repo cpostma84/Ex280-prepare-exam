@@ -51,141 +51,1256 @@
 
 ## Remaining Labs to Add
 
-The existing Labs 1–27 already cover several of the EX280 objectives. The list below contains only the topics that are not yet covered, or are only partially covered, by the current labs.
+The following Labs 28–44 are now written as complete practice exercises, including tasks, command-by-command solutions, verification and cleanup where applicable. They are additional practice material; check the current Red Hat EX280 objectives for the exact exam scope and OpenShift version.
 
 ### Declarative Resource Management
 
 <a id="lab-28-kustomize-base-resources"></a>
 ## Lab 28  Kustomize: Base Resources
-- Create a Kustomize base with a Deployment and Service.
-- Add resources through `kustomization.yaml`.
-- Build and apply the base with `oc kustomize` and `oc apply -k`.
-- Verify the generated resources.
+
+**Objective:** Build and deploy a reusable set of Kubernetes resources with Kustomize.
+
+**Task details:** Create a base containing a Deployment and ClusterIP Service for an nginx application. Use two replicas, label the Pods `app=web`, and expose container port 8080 (nginx listens on port 80, so use port 80 for this working example).
+
+**Solution**
+
+**Step 1  Create the project and directory**
+```bash
+oc new-project ex280-kustomize
+mkdir -p ~/ex280-kustomize/base
+cd ~/ex280-kustomize/base
+```
+
+**Step 2  Create the Deployment**
+```yaml
+# deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  labels:
+    app: web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.25
+        ports:
+        - name: http
+          containerPort: 80
+```
+
+**Step 3  Create the Service and Kustomization file**
+```yaml
+# service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+spec:
+  selector:
+    app: web
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 80
+```
+
+```yaml
+# kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- deployment.yaml
+- service.yaml
+```
+
+**Step 4  Preview and apply**
+```bash
+oc kustomize .
+oc apply -k .
+```
+
+**Step 5  Verify**
+```bash
+oc get deployments,pods,services
+oc get pods -l app=web
+oc get endpoints web
+```
+
+The Deployment should become available with two replicas and the Service should have endpoints. `oc apply -k` reads the `kustomization.yaml` file and applies the resources it lists.
+
+**Cleanup**
+```bash
+oc delete project ex280-kustomize
+```
 
 <a id="lab-29-kustomize-overlays-and-patches"></a>
 ## Lab 29  Kustomize: Overlays and Patches
-- Create separate development and production overlays.
-- Change replica counts, image tags, labels and namespaces per overlay.
-- Use patches to modify the base resources.
-- Build and apply each overlay.
+
+**Objective:** Use Kustomize overlays to maintain environment-specific configuration without duplicating base manifests.
+
+**Task details:** Create a base Deployment and Service, then create `dev` and `prod` overlays. Development should run one replica; production should run three. Give each overlay its own namespace and environment label.
+
+**Solution**
+
+**Step 1  Create the directory structure**
+```bash
+mkdir -p ~/ex280-overlays/base ~/ex280-overlays/overlays/{dev,prod}
+cd ~/ex280-overlays
+```
+
+**Step 2  Create base resources**
+```yaml
+# base/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.25
+        ports:
+        - containerPort: 80
+```
+
+```yaml
+# base/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+spec:
+  selector:
+    app: web
+  ports:
+  - port: 8080
+    targetPort: 80
+```
+
+```yaml
+# base/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- deployment.yaml
+- service.yaml
+```
+
+**Step 3  Create the development overlay**
+```yaml
+# overlays/dev/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ex280-dev
+resources:
+- ../../base
+commonLabels:
+  environment: dev
+replicas:
+- name: web
+  count: 1
+```
+
+**Step 4  Create the production overlay**
+```yaml
+# overlays/prod/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ex280-prod
+resources:
+- ../../base
+commonLabels:
+  environment: prod
+replicas:
+- name: web
+  count: 3
+```
+
+**Step 5  Build and inspect both variants**
+```bash
+oc kustomize overlays/dev
+oc kustomize overlays/prod
+```
+
+**Step 6  Create namespaces and deploy**
+```bash
+oc create namespace ex280-dev
+oc create namespace ex280-prod
+oc apply -k overlays/dev
+oc apply -k overlays/prod
+```
+
+**Step 7  Verify**
+```bash
+oc get deployment,service -n ex280-dev
+oc get deployment,service -n ex280-prod
+oc get deployment web -n ex280-dev -o jsonpath='{.spec.replicas}{"\n"}'
+oc get deployment web -n ex280-prod -o jsonpath='{.spec.replicas}{"\n"}'
+```
+
+Expected replica counts are one in `ex280-dev` and three in `ex280-prod`. If your Kustomize version warns about deprecated `commonLabels`, use `labels` with a `pairs` entry instead.
+
+**Cleanup**
+```bash
+oc delete namespace ex280-dev ex280-prod
+```
 
 <a id="lab-30-import-export-and-configure-kubernetes-resources"></a>
 ## Lab 30  Import, Export and Configure Kubernetes Resources
-- Export existing resources to YAML.
-- Edit exported manifests.
-- Import or apply the manifests to a project.
-- Compare local manifests with live resources and verify the changes.
+
+**Objective:** Export live resources, edit their YAML representation and apply the updated manifest declaratively.
+
+**Task details:** Deploy nginx, export its Deployment, change the replica count to two, save the manifest and apply it. Compare the live object with the local manifest.
+
+**Solution**
+
+**Step 1  Create a project and deploy an application**
+```bash
+oc new-project ex280-export
+oc create deployment web --image=nginx:1.25
+oc expose deployment web --port=80
+oc rollout status deployment/web
+```
+
+**Step 2  Export the Deployment**
+```bash
+oc get deployment web -o yaml > web-deployment.yaml
+```
+
+Open `web-deployment.yaml` and remove server-generated fields before reusing it. At minimum remove `status`, `metadata.uid`, `metadata.resourceVersion`, `metadata.creationTimestamp`, `metadata.generation`, `metadata.managedFields` and any `metadata.annotations` that are generated by the cluster. Keep `apiVersion`, `kind`, `metadata.name`, labels, selectors and the Pod template.
+
+**Step 3  Edit the desired state**
+Change `spec.replicas` to `2`. For a minimal clean manifest, use:
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: ex280-export
+  labels:
+    app: web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.25
+        ports:
+        - containerPort: 80
+```
+
+**Step 4  Apply the manifest**
+```bash
+oc apply -f web-deployment.yaml
+oc rollout status deployment/web
+```
+
+**Step 5  Compare local and live configuration**
+```bash
+oc get deployment web
+oc get deployment web -o yaml
+oc diff -f web-deployment.yaml
+```
+
+`oc diff` displays differences between the local configuration and the live object; no output means there are no differences detected for the submitted configuration. `oc apply` is the declarative workflow. `oc create -f` is for creating a resource that does not already exist.
+
+**Cleanup**
+```bash
+oc delete project ex280-export
+```
 
 ### Images and Resource Queries
 
 <a id="lab-31-locate-and-examine-container-images"></a>
 ## Lab 31  Locate and Examine Container Images
-- Locate images available from the configured image registries.
-- Inspect image metadata.
-- Identify and compare image tags and digests.
-- Understand the difference between a mutable tag and an immutable digest.
+
+**Objective:** Find container images, inspect image metadata and distinguish tags from digests.
+
+**Task details:** Inspect an image available from a public registry, identify its repository, tag and digest, and inspect an image used by a running Pod.
+
+**Solution**
+
+**Step 1  Search the cluster's image streams**
+```bash
+oc get imagestreams -A
+oc get imagestream -n openshift
+```
+
+ImageStreams are OpenShift resources and are not a complete catalogue of every image available in external registries.
+
+**Step 2  Inspect an image reference**
+```bash
+oc describe imagestream -n openshift
+oc get imagestream <IMAGESTREAM_NAME> -n openshift -o yaml
+```
+
+For a particular tag:
+```bash
+oc get imagestream <IMAGESTREAM_NAME> -n openshift \
+  -o jsonpath='{range .status.tags[*]}{.tag}{"  "}{.items[0].dockerImageReference}{"\n"}{end}'
+```
+
+**Step 3  Inspect the image used by a Pod**
+```bash
+oc get pods -n openshift -o wide
+oc get pod <POD_NAME> -n <NAMESPACE> \
+  -o jsonpath='{.spec.containers[*].image}{"\n"}'
+oc get pod <POD_NAME> -n <NAMESPACE> \
+  -o jsonpath='{.status.containerStatuses[*].imageID}{"\n"}'
+```
+
+The Pod specification shows the requested image reference. The container status `imageID` normally shows the resolved image digest.
+
+**Step 4  Compare tag and digest references**
+```bash
+# Tag reference (can point to a different image after the tag is moved)
+docker.io/library/nginx:1.25
+
+# Digest reference (content-addressed reference)
+docker.io/library/nginx@sha256:<DIGEST>
+```
+
+Use a real digest returned by the registry or runtime; do not type the placeholder literally. A tag is a human-readable pointer and may be mutable. A digest identifies image content. Registry inspection tools such as `skopeo inspect docker://docker.io/library/nginx:1.25` can show remote image metadata when `skopeo` is installed and the registry is reachable.
+
+**Step 5  Inspect an image with Skopeo (optional)**
+```bash
+skopeo inspect docker://docker.io/library/nginx:1.25
+skopeo inspect --raw docker://docker.io/library/nginx:1.25 | head
+```
+
+**Cleanup**
+No cluster resources are created by this lab. Remove any temporary Pod you created while testing:
+```bash
+oc delete pod <POD_NAME> -n <NAMESPACE> --ignore-not-found
+```
 
 <a id="lab-32-query-format-and-filter-kubernetes-resources"></a>
 ## Lab 32  Query, Format and Filter Kubernetes Resources
-- Query resources with label and field selectors.
-- Format output as YAML, JSON, wide output and custom columns.
-- Extract selected attributes with JSONPath.
-- Filter and inspect resources across projects.
+
+**Objective:** Query resources using label selectors, output formats, JSONPath and cross-namespace commands.
+
+**Task details:** Create two labelled Deployments, list only resources with a chosen label, display selected columns and extract values with JSONPath.
+
+**Solution**
+
+**Step 1  Create sample resources**
+```bash
+oc new-project ex280-query
+oc create deployment frontend --image=nginx:1.25
+oc create deployment backend --image=nginx:1.25
+oc label deployment frontend tier=frontend
+oc label deployment backend tier=backend
+```
+
+**Step 2  Filter by label**
+```bash
+oc get deployments --show-labels
+oc get deployments -l tier=frontend
+oc get deployments -l 'tier in (frontend,backend)'
+```
+
+**Step 3  Use common output formats**
+```bash
+oc get deployments -o wide
+oc get deployment frontend -o yaml
+oc get deployment frontend -o json
+```
+
+**Step 4  Select custom columns**
+```bash
+oc get deployments \
+  -o custom-columns=NAME:.metadata.name,IMAGE:.spec.template.spec.containers[0].image,REPLICAS:.spec.replicas
+```
+
+**Step 5  Extract values with JSONPath**
+```bash
+oc get deployment frontend -o jsonpath='{.spec.replicas}{"\n"}'
+oc get pods -l tier=frontend \
+  -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.phase}{"\n"}{end}'
+```
+
+**Step 6  Query across all namespaces**
+```bash
+oc get pods -A
+oc get deployments -A
+oc get events -A --sort-by=.lastTimestamp
+```
+
+Use `-n <namespace>` for one project and `-A` or `--all-namespaces` for cluster-wide listing. Field selectors are supported only for fields the API resource allows, for example:
+```bash
+oc get pods --field-selector=status.phase=Running
+```
+
+**Cleanup**
+```bash
+oc delete project ex280-query
+```
 
 ### Cluster Administration and Troubleshooting
 
 <a id="lab-33-cluster-health-status-events-and-alerts"></a>
 ## Lab 33  Cluster Health, Status, Events and Alerts
-- Examine nodes and cluster operators.
-- Check cluster version and cluster status.
-- Inspect events across namespaces.
-- Review monitoring alerts and identify their affected resources.
+
+**Objective:** Assess cluster health using nodes, ClusterOperators, cluster version, events and monitoring alerts.
+
+**Task details:** Collect a basic health snapshot and identify any nodes or operators that are not in a healthy state.
+
+**Solution**
+
+**Step 1  Check cluster version and status**
+```bash
+oc get clusterversion
+oc describe clusterversion version
+oc get clusteroperators
+```
+
+ClusterOperators normally report `AVAILABLE=True`, `PROGRESSING=False` and `DEGRADED=False`. A cluster may be updating, so interpret the conditions in context.
+
+**Step 2  Check nodes**
+```bash
+oc get nodes
+oc describe nodes
+oc get nodes -o wide
+```
+
+Investigate nodes that are `NotReady`, have pressure conditions, or show unexpected taints.
+
+**Step 3  Review events**
+```bash
+oc get events -A --sort-by=.lastTimestamp
+oc get events -n openshift-ingress --sort-by=.lastTimestamp
+```
+
+Look for repeated `Warning` events such as `FailedScheduling`, `FailedMount`, `BackOff` and image pull failures. Events are time-limited and may disappear, so also inspect the affected resource.
+
+**Step 4  Inspect monitoring alerts in the console**
+In the OpenShift web console, open **Observe → Alerting → Alerts**. Review firing alerts, their severity, description and affected object. The exact menu labels can vary by OpenShift version and user permissions.
+
+If permitted, inspect monitoring resources from the CLI:
+```bash
+oc get pods -n openshift-monitoring
+oc get prometheusrules -A
+```
+
+**Step 5  Build a concise health snapshot**
+```bash
+oc get clusterversion
+oc get clusteroperators
+oc get nodes
+oc get co | grep -v 'True.*False.*False'
+```
+
+The final grep is only a quick screen, not a definitive health test: column order and conditions can vary. Always inspect suspicious operators with `oc describe clusteroperator <NAME>`.
+
+**Cleanup**
+Read-only lab; no cleanup required.
 
 <a id="lab-34-logs-and-containerpod-troubleshooting"></a>
 ## Lab 34  Logs and Container/Pod Troubleshooting
-- Inspect current and previous container logs.
-- Investigate pod events and describe output.
-- Diagnose common container and pod startup failures.
-- Use resource status and logs to identify the cause of a failure.
+
+**Objective:** Diagnose a failing Pod using status, events, descriptions and current or previous container logs.
+
+**Task details:** Create a Deployment with an invalid image, identify the problem, correct it and verify that the application becomes available.
+
+**Solution**
+
+**Step 1  Create a failing Deployment**
+```bash
+oc new-project ex280-troubleshoot
+oc create deployment broken --image=nginx:does-not-exist
+```
+
+**Step 2  Inspect its status**
+```bash
+oc get pods -l app=broken -w
+oc get deployment broken
+oc describe deployment broken
+oc get events --sort-by=.lastTimestamp
+```
+
+The Pod will commonly show `ErrImagePull` or `ImagePullBackOff`. The `describe pod` output and events usually contain the registry error.
+
+**Step 3  Inspect logs**
+```bash
+oc get pods -l app=broken
+oc logs <POD_NAME>
+```
+
+An image-pull failure happens before the container starts, so there may be no application logs. For a container that has restarted, use:
+```bash
+oc logs <POD_NAME> --previous
+```
+
+For a multi-container Pod, specify the container:
+```bash
+oc logs <POD_NAME> -c <CONTAINER_NAME>
+```
+
+**Step 4  Correct the image**
+```bash
+oc set image deployment/broken broken=nginx:1.25
+oc rollout status deployment/broken
+```
+
+**Step 5  Verify the recovery**
+```bash
+oc get deployment broken
+oc get pods -l app=broken
+oc describe pod <NEW_POD_NAME>
+oc logs deployment/broken
+```
+
+**Troubleshooting checklist**
+- `Pending`: inspect scheduling events, node capacity, PVCs and taints.
+- `ImagePullBackOff`: inspect image name, tag, registry access and pull secret.
+- `CrashLoopBackOff`: inspect current and previous logs, command, environment and probes.
+- `CreateContainerConfigError`: inspect referenced ConfigMaps, Secrets and volume settings.
+- `Running` but not reachable: inspect Service selectors, endpoints, targetPort, NetworkPolicy and Route.
+
+**Cleanup**
+```bash
+oc delete project ex280-troubleshoot
+```
 
 <a id="lab-35-use-openshift-product-documentation"></a>
 ## Lab 35  Use OpenShift Product Documentation
-- Find the relevant OpenShift product documentation for a task.
-- Locate command references and resource examples.
-- Check the documentation version against the cluster version.
-- Use documentation to verify resource fields and command options.
+
+**Objective:** Use the documentation that matches the installed OpenShift version to find resource syntax, command options and supported configuration.
+
+**Task details:** Find the documentation for Deployments, Routes and NetworkPolicy. Confirm the cluster version, locate an example manifest and validate a local manifest before applying it.
+
+**Solution**
+
+**Step 1  Identify the cluster version**
+```bash
+oc get clusterversion version
+oc version
+```
+
+Record the OpenShift version before using documentation. Documentation for a different major or minor release may describe fields or behavior that differ from your cluster.
+
+**Step 2  Open the matching documentation**
+Use the official OpenShift documentation: https://docs.openshift.com/ . Select the documentation version corresponding to the cluster, then use the search function for:
+- Deployments and workload configuration
+- Routes and TLS termination
+- Network policies
+- `oc` command-line reference
+
+**Step 3  Inspect API resources from the cluster**
+```bash
+oc explain deployment
+oc explain deployment.spec
+oc explain route.spec --api-version=route.openshift.io/v1
+oc explain networkpolicy.spec --api-version=networking.k8s.io/v1
+```
+
+`oc explain` reads the API schema served by the cluster and is useful for checking available fields.
+
+**Step 4  Validate a manifest without applying it**
+```bash
+oc apply --dry-run=server -f resource.yaml
+```
+
+Server-side dry run asks the API server to validate the object without persisting it. If server-side dry run is unavailable for a particular resource or cluster configuration, use the validation options supported by that `oc` version.
+
+**Step 5  Check command syntax**
+```bash
+oc help
+oc explain route
+oc set probe --help
+oc create route --help
+```
+
+**Key exam habit:** Verify syntax and resource fields rather than guessing. Prefer the documentation version matching the cluster and use `oc explain` for the live API schema.
+
+**Cleanup**
+Read-only lab; no cleanup required. Do not apply a manifest unless you intend to create or modify that resource.
 
 ### Networking
 
 <a id="lab-36-ingress-controller-and-cluster-network-ingress"></a>
 ## Lab 36  Ingress Controller and Cluster Network Ingress
-- Inspect the available Ingress Controllers.
-- Examine the default ingress configuration.
-- Review how Routes are admitted by the ingress controller.
-- Configure and verify the cluster ingress settings required by the task.
+
+**Objective:** Inspect OpenShift IngressControllers and understand how Routes are handled by the cluster ingress layer.
+
+**Task details:** Identify the default IngressController, its domain, replicas and endpoint publishing strategy. Inspect a Route and determine which router admitted it.
+
+**Solution**
+
+**Step 1  Inspect ingress configuration**
+```bash
+oc get ingresscontroller -n openshift-ingress-operator
+oc describe ingresscontroller default -n openshift-ingress-operator
+oc get ingress.config.openshift.io cluster -o yaml
+```
+
+**Step 2  Inspect router Pods and Services**
+```bash
+oc get pods -n openshift-ingress -o wide
+oc get services -n openshift-ingress
+oc get deployments -n openshift-ingress
+```
+
+**Step 3  Create a test application and Route**
+```bash
+oc new-project ex280-ingress
+oc create deployment web --image=nginx:1.25
+oc expose deployment web --port=80
+oc expose service web
+oc get route web
+```
+
+**Step 4  Inspect Route admission and host**
+```bash
+oc describe route web
+oc get route web -o yaml
+```
+
+Look under `status.ingress` for the router name and admission condition. The Route host is normally based on the cluster ingress domain.
+
+**Step 5  Test the route**
+```bash
+HOST=$(oc get route web -o jsonpath='{.spec.host}')
+curl -I "http://${HOST}"
+```
+
+If the client cannot resolve the host or reach the router, verify DNS and the cluster's external ingress networking. Do not modify the cluster-wide IngressController for this basic exercise.
+
+**Cleanup**
+```bash
+oc delete project ex280-ingress
+```
 
 <a id="lab-37-software-defined-networking-and-network-troubleshooting"></a>
 ## Lab 37  Software Defined Networking and Network Troubleshooting
-- Inspect network-related cluster resources and events.
-- Troubleshoot connectivity between Pods and Services.
-- Check DNS resolution, Service selectors and Endpoints.
-- Investigate common software-defined networking symptoms.
+
+**Objective:** Troubleshoot Pod-to-Pod and Pod-to-Service connectivity using selectors, endpoints, DNS and NetworkPolicy.
+
+**Task details:** Deploy a frontend and backend. Confirm connectivity, then apply a NetworkPolicy that blocks ingress to the backend and verify the effect.
+
+**Solution**
+
+**Step 1  Create the project and workloads**
+```bash
+oc new-project ex280-network
+oc create deployment frontend --image=registry.access.redhat.com/ubi9/ubi -- sleep 36000
+oc create deployment backend --image=registry.access.redhat.com/ubi9/ubi -- sleep 36000
+oc label deployment frontend role=frontend
+oc label deployment backend role=backend
+oc expose deployment backend --port=8080 --target-port=8080
+```
+
+This simple pair of containers is for network-path practice; it does not run an HTTP server. For an HTTP test, use an application image that listens on the target port.
+
+**Step 2  Inspect Service selection and endpoints**
+```bash
+oc get svc backend -o yaml
+oc get endpoints backend
+oc get pods --show-labels -o wide
+```
+
+A Service with no endpoints usually has a selector that does not match ready Pod labels, or the Pods are not ready.
+
+**Step 3  Check DNS from a temporary Pod**
+```bash
+oc run dns-test --image=registry.access.redhat.com/ubi9/ubi \
+  --restart=Never --command -- sleep 36000
+oc wait --for=condition=Ready pod/dns-test --timeout=90s
+oc exec dns-test -- getent hosts backend
+```
+
+If `getent` is not present in the selected image, use a diagnostic image that contains DNS utilities. The fully qualified service name is `backend.ex280-network.svc.cluster.local`.
+
+**Step 4  Apply a policy that permits only frontend Pods**
+```yaml
+# backend-policy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-only
+spec:
+  podSelector:
+    matchLabels:
+      role: backend
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          role: frontend
+```
+
+```bash
+oc apply -f backend-policy.yaml
+oc get networkpolicy
+oc describe networkpolicy allow-frontend-only
+```
+
+**Step 5  Understand and test the result**
+The policy selects backend Pods and allows ingress only from Pods labelled `role=frontend` in the same namespace. Other sources are denied for ingress to selected backend Pods. NetworkPolicy enforcement depends on the cluster network plugin.
+
+For a meaningful connection test, deploy a server listening on port 8080 in the backend and use a client Pod to connect before and after applying the policy. Check Pod labels, Service endpoints, DNS and policy selectors if the result differs from expectations.
+
+**Cleanup**
+```bash
+oc delete project ex280-network
+```
 
 <a id="lab-38-tls-for-external-and-internal-application-traffic"></a>
 ## Lab 38  TLS for External and Internal Application Traffic
-- Review the existing Edge Route exercise in Lab 23.
-- Configure and compare Edge, Re-encrypt and Passthrough Route termination.
-- Use certificates and secrets for TLS.
-- Verify where TLS is terminated and whether traffic from the router to the application is encrypted.
+
+**Objective:** Configure Edge, Re-encrypt and Passthrough Routes and understand where TLS terminates.
+
+**Task details:** Deploy one HTTP backend and one TLS backend. Create an Edge Route to the HTTP backend, and Re-encrypt and Passthrough Routes to the TLS backend.
+
+**Solution**
+
+**Step 1  Create the project and HTTP application**
+```bash
+oc new-project ex280-tls
+oc create deployment web-http --image=nginx:1.25
+oc expose deployment web-http --port=80
+oc rollout status deployment/web-http
+```
+
+**Step 2  Generate a test certificate**
+```bash
+openssl req -x509 -nodes -days 30 -newkey rsa:2048 \
+  -keyout tls.key -out tls.crt \
+  -subj "/CN=web.example.test"
+oc create secret tls web-backend-tls --cert=tls.crt --key=tls.key
+```
+
+Use test certificates only in this lab. Production endpoints should use certificates issued and managed according to the organization's PKI requirements.
+
+**Step 3  Deploy a TLS backend**
+Create `web-tls.yaml`:
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-tls
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-tls
+  template:
+    metadata:
+      labels:
+        app: web-tls
+    spec:
+      containers:
+      - name: tls-server
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/sh", "-c"]
+        args:
+        - exec openssl s_server -accept 8443 -cert /certs/tls.crt -key /certs/tls.key -www
+        ports:
+        - name: tls
+          containerPort: 8443
+        volumeMounts:
+        - name: certificate
+          mountPath: /certs
+          readOnly: true
+      volumes:
+      - name: certificate
+        secret:
+          secretName: web-backend-tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-tls
+spec:
+  selector:
+    app: web-tls
+  ports:
+  - name: tls
+    port: 8443
+    targetPort: tls
+```
+
+```bash
+oc apply -f web-tls.yaml
+oc rollout status deployment/web-tls
+oc get service web-tls
+```
+
+The `openssl s_server -www` process provides a simple HTTPS test endpoint. If the image used in your environment does not contain OpenSSL, use an approved image that provides `openssl s_server` or substitute a TLS-enabled test application.
+
+**Step 4  Create an Edge Route**
+```bash
+oc create route edge web-edge --service=web-http
+oc get route web-edge
+```
+
+With Edge termination, TLS ends at the OpenShift router. Router-to-Pod traffic is HTTP.
+
+**Step 5  Create a Re-encrypt Route**
+```bash
+oc create route reencrypt web-reencrypt --service=web-tls \
+  --cert=tls.crt --key=tls.key --dest-ca-cert=tls.crt
+oc get route web-reencrypt
+```
+
+The router terminates the client TLS connection and establishes a second TLS connection to the backend. `--dest-ca-cert` supplies the CA certificate used to validate the backend certificate. This self-signed certificate is for isolated practice only.
+
+**Step 6  Create a Passthrough Route**
+```bash
+oc create route passthrough web-passthrough --service=web-tls
+oc get route web-passthrough
+```
+
+Passthrough does not terminate TLS at the router. The backend application presents its own certificate to the client.
+
+**Step 7  Verify all three Routes**
+```bash
+oc get routes
+EDGE_HOST=$(oc get route web-edge -o jsonpath='{.spec.host}')
+REENC_HOST=$(oc get route web-reencrypt -o jsonpath='{.spec.host}')
+PASS_HOST=$(oc get route web-passthrough -o jsonpath='{.spec.host}')
+curl -kI "https://${EDGE_HOST}"
+curl -k "https://${REENC_HOST}" | head
+curl -k "https://${PASS_HOST}" | head
+```
+
+The Edge Route reaches the nginx HTTP service. The Re-encrypt and Passthrough Routes reach the TLS test service. The `-k` option is used only because this lab uses a self-signed certificate.
+
+| Termination | TLS ends at | Router-to-backend traffic |
+|---|---|---|
+| Edge | Router | HTTP by default |
+| Re-encrypt | Router, then a new TLS connection to backend | HTTPS |
+| Passthrough | Backend application | TLS remains encrypted through router |
+
+**Cleanup**
+```bash
+oc delete project ex280-tls
+rm -f tls.key tls.crt web-tls.yaml
+```
 
 <a id="lab-39-configure-a-loadbalancer-service"></a>
 ## Lab 39  Configure a LoadBalancer Service
-- Create a Service of type `LoadBalancer`.
-- Inspect its external address and status.
-- Verify access to the application.
-- Compare LoadBalancer with ClusterIP and NodePort service types.
+
+**Objective:** Create and inspect a Service of type `LoadBalancer` and compare it with ClusterIP and NodePort.
+
+**Task details:** Deploy nginx, create a LoadBalancer Service and inspect whether the cluster platform assigns an external address.
+
+**Solution**
+
+**Step 1  Create the application**
+```bash
+oc new-project ex280-lb
+oc create deployment web --image=nginx:1.25
+```
+
+**Step 2  Create the LoadBalancer Service**
+```yaml
+# web-lb.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-lb
+spec:
+  type: LoadBalancer
+  selector:
+    app: web
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+```
+
+```bash
+oc apply -f web-lb.yaml
+oc get service web-lb -w
+```
+
+**Step 3  Inspect the assigned address and endpoints**
+```bash
+oc describe service web-lb
+oc get service web-lb -o wide
+oc get endpoints web-lb
+```
+
+On platforms with a load-balancer integration, an external IP or hostname may be assigned. On bare-metal or unsupported environments, `EXTERNAL-IP` may remain `<pending>` until a load-balancer implementation is configured. This is not fixed by changing the Service YAML alone.
+
+**Step 4  Compare service types**
+```bash
+oc expose deployment web --name=web-clusterip --port=8080 --target-port=80
+oc expose deployment web --name=web-nodeport --type=NodePort --port=8081 --target-port=80
+oc get services
+```
+
+- `ClusterIP`: reachable inside the cluster.
+- `NodePort`: exposes a port on each node, subject to network access and firewall rules.
+- `LoadBalancer`: requests an external load balancer from the platform integration.
+
+**Cleanup**
+```bash
+oc delete project ex280-lb
+```
 
 <a id="lab-40-expose-non-http-applications-with-sni"></a>
 ## Lab 40  Expose Non-HTTP Applications with SNI
-- Deploy a non-HTTP application.
-- Expose it using the supported OpenShift routing/SNI mechanism.
-- Configure the required Service and Route settings.
-- Verify client connectivity.
+
+**Objective:** Understand the limits of OpenShift Routes for non-HTTP TCP protocols and the role of TLS SNI.
+
+**Task details:** Inspect the router's default certificate and learn how a TLS passthrough Route uses the TLS Server Name Indication value to select a backend. Do not expose a production service for this exercise.
+
+**Solution**
+
+**Step 1  Understand the requirement**
+An ordinary OpenShift Route is primarily designed for HTTP/HTTPS traffic. TLS passthrough Routes can forward encrypted TLS traffic to a backend without decrypting it at the router. The router can use the SNI hostname from the TLS ClientHello to select the Route. A client must send the expected hostname using SNI.
+
+**Step 2  Inspect ingress and the default certificate**
+```bash
+oc get ingresscontroller default -n openshift-ingress-operator -o yaml
+oc get secret -n openshift-ingress
+```
+
+Do not print or copy private keys from cluster Secrets. The IngressController's default certificate is distinct from application certificates used behind passthrough Routes.
+
+**Step 3  Review passthrough Route configuration**
+A passthrough Route has a TLS section similar to:
+```yaml
+spec:
+  host: secure.example.test
+  to:
+    kind: Service
+    name: tls-backend
+  port:
+    targetPort: tls
+  tls:
+    termination: passthrough
+```
+
+The Service must expose a named TLS target port and the backend must speak TLS. The application presents the certificate to the client.
+
+**Step 4  Inspect a Route in the cluster**
+```bash
+oc get routes -A
+oc get route <ROUTE_NAME> -n <NAMESPACE> -o yaml
+oc describe route <ROUTE_NAME> -n <NAMESPACE>
+```
+
+**Step 5  Test SNI when a passthrough service is available**
+```bash
+openssl s_client -connect <ROUTER_HOST>:443 -servername <ROUTE_HOST>
+```
+
+Replace both placeholders with the actual router address and Route host. The `-servername` option supplies SNI. Without the expected SNI hostname, the router may not select the intended passthrough Route.
+
+**Important distinction:** SNI is a TLS hostname-selection mechanism, not a general-purpose TCP routing feature for arbitrary unencrypted protocols. For non-HTTP protocols that do not use TLS/SNI, use a supported Service exposure pattern such as LoadBalancer or NodePort, subject to platform and security requirements.
+
+**Cleanup**
+Read-only lab; remove any test application or Route created separately.
 
 ### Operators and Application Security
 
 <a id="lab-41-operator-lifecycle-uninstall-and-delete"></a>
 ## Lab 41  Operator Lifecycle: Uninstall and Delete
-- Inspect an installed Operator, its Subscription and ClusterServiceVersion.
-- Uninstall the Operator.
-- Remove the Subscription and related resources where appropriate.
-- Verify which resources remain and clean them up safely.
+
+**Objective:** Identify the resources involved in an Operator installation and remove an Operator safely.
+
+**Task details:** Inspect an installed Operator in a test namespace, identify its Subscription, ClusterServiceVersion (CSV) and custom resources, then remove the installation. Do not remove a cluster-wide Operator used by other teams.
+
+**Solution**
+
+**Step 1  Find installed Operators**
+```bash
+oc get subscriptions -A
+oc get csv -A
+oc get installplans -A
+```
+
+**Step 2  Inspect the target Subscription and CSV**
+```bash
+oc get subscription <SUBSCRIPTION_NAME> -n <OPERATOR_NAMESPACE> -o yaml
+oc get csv -n <OPERATOR_NAMESPACE>
+oc describe csv <CSV_NAME> -n <OPERATOR_NAMESPACE>
+```
+
+Record the Operator namespace, package, channel, source and installed CSV. Identify custom resources created by the Operator before removing it.
+
+**Step 3  Inspect custom resources**
+```bash
+oc api-resources | grep -i <OPERATOR_KEYWORD>
+oc get <CUSTOM_RESOURCE_KIND> -A
+```
+
+Export any data that must be retained. Deleting an Operator may stop reconciliation; deleting its custom resources may also delete application-specific resources depending on the Operator.
+
+**Step 4  Remove the Subscription**
+```bash
+oc delete subscription <SUBSCRIPTION_NAME> -n <OPERATOR_NAMESPACE>
+```
+
+Removing the Subscription stops future updates through that Subscription, but does not necessarily remove every Operator resource or CSV in every installation mode.
+
+**Step 5  Remove remaining Operator resources only when appropriate**
+```bash
+oc get csv -n <OPERATOR_NAMESPACE>
+oc get installplan -n <OPERATOR_NAMESPACE>
+```
+
+If the CSV remains and this is a dedicated lab installation, remove it:
+```bash
+oc delete csv <CSV_NAME> -n <OPERATOR_NAMESPACE>
+```
+
+Delete the OperatorGroup and namespace only if they were created exclusively for this lab and no other Operator or workload uses them:
+```bash
+oc get operatorgroup -n <OPERATOR_NAMESPACE>
+# Only for a dedicated lab namespace:
+oc delete namespace <OPERATOR_NAMESPACE>
+```
+
+**Step 6  Verify**
+```bash
+oc get subscriptions,csv,installplans -A
+```
+
+**Key concept:** Removing a Subscription, CSV, OperatorGroup, custom resources and namespace are distinct actions. Check the Operator's documentation and installation scope before deleting cluster-scoped resources.
 
 <a id="lab-42-run-privileged-applications-and-manage-scc"></a>
 ## Lab 42  Run Privileged Applications and Manage SCC
-- Inspect available Security Context Constraints.
-- Compare `anyuid` and `privileged` SCC permissions.
-- Grant the required SCC to a dedicated ServiceAccount.
-- Deploy and verify an application that requires the privileged SCC.
-- Remove the permission after the exercise.
+
+**Objective:** Inspect Security Context Constraints and grant the minimum SCC required to a dedicated ServiceAccount.
+
+**Task details:** Create a ServiceAccount, inspect the `anyuid` and `privileged` SCCs, grant `anyuid` to the ServiceAccount and verify the assignment. Do not grant the privileged SCC unless a task explicitly requires it.
+
+**Solution**
+
+**Step 1  Create a project and ServiceAccount**
+```bash
+oc new-project ex280-scc
+oc create serviceaccount app-sa
+```
+
+**Step 2  Inspect SCCs**
+```bash
+oc get scc
+oc describe scc restricted
+oc describe scc anyuid
+oc describe scc privileged
+```
+
+`restricted` is the normal least-privilege baseline in many OpenShift configurations. `anyuid` permits running with arbitrary UIDs; `privileged` grants much broader host-level capabilities and should be avoided unless essential.
+
+**Step 3  Grant `anyuid` to the ServiceAccount**
+```bash
+oc adm policy add-scc-to-user anyuid -z app-sa -n ex280-scc
+```
+
+**Step 4  Verify the SCC user assignment**
+```bash
+oc describe scc anyuid
+oc auth can-i use scc/anyuid --as=system:serviceaccount:ex280-scc:app-sa
+```
+
+**Step 5  Run a test Pod with the ServiceAccount**
+```bash
+oc run uid-test --image=registry.access.redhat.com/ubi9/ubi \
+  --serviceaccount=app-sa --restart=Never --command -- sleep 36000
+oc get pod uid-test
+oc describe pod uid-test
+```
+
+The SCC selected for a Pod can be seen in its annotations on supported OpenShift versions:
+```bash
+oc get pod uid-test -o jsonpath='{.metadata.annotations.openshift\.io/scc}{"\n"}'
+```
+
+**Step 6  Remove the grant and test resources**
+```bash
+oc adm policy remove-scc-from-user anyuid -z app-sa -n ex280-scc
+oc delete project ex280-scc
+```
+
+**Exam tip:** Bind an SCC to the specific ServiceAccount, not to all authenticated users or a broad group. Grant only the least privilege required.
 
 <a id="lab-43-configure-application-access-to-kubernetes-apis"></a>
 ## Lab 43  Configure Application Access to Kubernetes APIs
-- Create and configure a ServiceAccount.
-- Grant only the required Role or ClusterRole permissions.
-- Bind the permissions to the ServiceAccount.
-- Test API permissions with `oc auth can-i`.
-- Verify that the application can access only the permitted Kubernetes API resources.
+
+**Objective:** Give an application a ServiceAccount and narrowly scoped RBAC permissions to read selected API resources.
+
+**Task details:** Create a ServiceAccount named `app-reader`, grant it permission to get and list Pods only in the current namespace, and verify allowed and denied actions.
+
+**Solution**
+
+**Step 1  Create a project and ServiceAccount**
+```bash
+oc new-project ex280-api
+oc create serviceaccount app-reader
+```
+
+**Step 2  Create a namespace-scoped Role**
+```yaml
+# pod-reader-role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-reader
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+```
+
+```bash
+oc apply -f pod-reader-role.yaml
+```
+
+**Step 3  Bind the Role to the ServiceAccount**
+```bash
+oc create rolebinding app-reader-binding \
+  --role=pod-reader \
+  --serviceaccount=ex280-api:app-reader
+```
+
+**Step 4  Test authorization**
+```bash
+oc auth can-i list pods --as=system:serviceaccount:ex280-api:app-reader -n ex280-api
+oc auth can-i get pods --as=system:serviceaccount:ex280-api:app-reader -n ex280-api
+oc auth can-i create deployments.apps --as=system:serviceaccount:ex280-api:app-reader -n ex280-api
+oc auth can-i list pods --as=system:serviceaccount:ex280-api:app-reader -n default
+```
+
+Expected: list/get Pods in `ex280-api` are allowed; creating Deployments and listing Pods in another namespace are denied. The administrator running `oc auth can-i --as` must be permitted to impersonate that ServiceAccount.
+
+**Step 5  Inspect the binding**
+```bash
+oc get role pod-reader -o yaml
+oc get rolebinding app-reader-binding -o yaml
+oc describe rolebinding app-reader-binding
+```
+
+**Step 6  Understand in-Pod API access**
+A Pod using this ServiceAccount receives a projected ServiceAccount token and cluster CA information through its mounted token volume, subject to the cluster's token configuration. Applications should use the in-cluster API endpoint and HTTPS, read the token from the mounted file, and avoid copying long-lived credentials into images or source control.
+
+**Cleanup**
+```bash
+oc delete project ex280-api
+```
 
 ### Scheduled Workloads
 
 <a id="lab-44-create-and-manage-kubernetes-cronjobs"></a>
 ## Lab 44  Create and Manage Kubernetes CronJobs
-- Create a CronJob with a specified schedule.
-- Configure the Job template and concurrency policy.
-- Suspend and resume the CronJob.
-- Inspect the Jobs and Pods created by the CronJob.
-- Verify logs and clean up the CronJob.
+
+**Objective:** Create and manage a CronJob, configure its schedule and concurrency policy, and inspect the Jobs and Pods it creates.
+
+**Task details:** Create a CronJob that runs every minute, uses the `Forbid` concurrency policy, retains a small number of completed Jobs and prints the current time. Suspend and resume it, then inspect its execution.
+
+**Solution**
+
+**Step 1  Create a project**
+```bash
+oc new-project ex280-cron
+```
+
+**Step 2  Create the CronJob manifest**
+```yaml
+# report-cronjob.yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: report
+spec:
+  schedule: "*/1 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: report
+            image: registry.access.redhat.com/ubi9/ubi
+            command: ["/bin/sh", "-c", "date; echo EX280 scheduled task"]
+```
+
+**Step 3  Apply and inspect**
+```bash
+oc apply -f report-cronjob.yaml
+oc get cronjob report
+oc describe cronjob report
+```
+
+**Step 4  Wait for a scheduled Job**
+```bash
+oc get jobs -w
+```
+
+In another terminal, inspect the Job and Pod:
+```bash
+oc get jobs
+oc get pods
+oc logs job/<JOB_NAME>
+```
+
+Replace `<JOB_NAME>` with the actual Job name shown by `oc get jobs`.
+
+**Step 5  Suspend and resume the schedule**
+```bash
+oc patch cronjob report --type=merge -p '{"spec":{"suspend":true}}'
+oc get cronjob report
+oc patch cronjob report --type=merge -p '{"spec":{"suspend":false}}'
+```
+
+Suspending a CronJob prevents future scheduled Jobs; it does not automatically stop Jobs that are already running.
+
+**Step 6  Trigger a one-off Job from the CronJob (optional)**
+```bash
+oc create job report-manual --from=cronjob/report
+oc get jobs
+oc logs job/report-manual
+```
+
+**Step 7  Clean up**
+```bash
+oc delete project ex280-cron
+```
+
+**Key concepts**
+- `schedule` uses standard five-field cron syntax.
+- `Forbid` skips a scheduled run if the previous Job is still running.
+- `Allow` permits concurrent Jobs; `Replace` replaces an active Job with a new one.
+- History limits control how many finished Job objects are retained.
+- A CronJob creates Jobs; each Job creates one or more Pods.
+
+---
 
 ### Coverage notes
 
