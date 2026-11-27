@@ -1,56 +1,198 @@
-## EX280 Practice Labs — OpenShift Administrator
+## EX280 Practice Labs  OpenShift Administrator
 
 ## Table of Contents
 
-- [Lab 1 — HTPasswd Identity Provider](#lab-1--htpasswd-identity-provider)
-- [Lab 2 — Managing Users](#lab-2--managing-users)
-- [Lab 3 — Managing Groups](#lab-3--managing-groups)
-- [Lab 4 — RBAC and Permissions](#lab-4--rbac-and-permissions)
-- [Lab 5 — Custom Roles](#lab-5--custom-roles)
-- [Lab 6 — Resource Quota](#lab-6--resource-quota)
-- [Lab 7 — Limit Range](#lab-7--limit-range)
-- [Lab 8 — Deploy from Resource Manifests](#lab-8--deploy-from-resource-manifests)
-- [Lab 9 — Deploy from Images, Templates and Helm Charts](#lab-9--deploy-from-images-templates-and-helm-charts)
-- [Lab 10 — Deploy Jobs for One-time Tasks](#lab-10--deploy-jobs-for-one-time-tasks)
-- [Lab 11 — Manage Application Deployments](#lab-11--manage-application-deployments)
-- [Lab 12 — ReplicaSets](#lab-12--replicasets)
-- [Lab 13 — Labels and Selectors](#lab-13--labels-and-selectors)
-- [Lab 14 — Configure Services](#lab-14--configure-services)
-- [Lab 15 — Manage Secrets](#lab-15--manage-secrets)
-- [Lab 16 — Manage Configuration Maps](#lab-16--manage-configuration-maps)
-- [Lab 17 — Mount Storage (PV, PVC, Deployment & Route](#lab-17--mount-storage-pv-pvc-deployment-route)
-- [Lab 18 — Storage Classes](#lab-18--storage-classes)
-- [Lab 19 — StatefulSets](#lab-19--statefulsets)
-- [Lab 20 — Mount Storage — PV and PVC](#lab-20--mount-storage--pv-and-pvc)
-- [Lab 21 — ServiceAccounts and SCC](#lab-21--serviceaccounts-and-scc)
-- [Lab 22 — Install and Configure an Operator (File Integrity Operator)](#lab-22--install-and-configure-an-operator-file-integrity-operator)
-- [Lab 23 — Networking: Expose Applications through a Secure Route](#lab-23--networking-expose-applications-through-a-secure-route)
-- [Lab 24 — Automatically Scale an Application (Horizontal Pod Autoscaler)](#lab-24--automatically-scale-an-application-horizontal-pod-autoscaler)
-- [Lab 25 — Configure a Project Template with a LimitRange](#lab-25--configure-a-project-template-with-a-limitrange)
-- [Lab 26 — Configure Network Policies](#lab-26--configure-network-policies)
-- [Lab 27 — Configure Liveness Probes](#lab-27--configure-liveness-probes)
+- [Lab 1  HTPasswd Identity Provider](#lab-1-htpasswd-identity-provider)
+- [Lab 2  Managing Users](#lab-2-managing-users)
+- [Lab 3  Managing Groups](#lab-3-managing-groups)
+- [Lab 4  RBAC and Permissions](#lab-4-rbac-and-permissions)
+- [Lab 5  Custom Roles](#lab-5-custom-roles)
+- [Lab 6  Resource Quota](#lab-6-resource-quota)
+- [Lab 7  Limit Range](#lab-7-limit-range)
+- [Lab 8  Deploy from Resource Manifests](#lab-8-deploy-from-resource-manifests)
+- [Lab 9  Deploy from Images, Templates and Helm Charts](#lab-9-deploy-from-images-templates-and-helm-charts)
+- [Lab 10  Deploy Jobs for One-time Tasks](#lab-10-deploy-jobs-for-one-time-tasks)
+- [Lab 11  Manage Application Deployments](#lab-11-manage-application-deployments)
+- [Lab 12  ReplicaSets](#lab-12-replicasets)
+- [Lab 13  Labels and Selectors](#lab-13-labels-and-selectors)
+- [Lab 14  Configure Services](#lab-14-configure-services)
+- [Lab 15  Manage Secrets](#lab-15-manage-secrets)
+- [Lab 16  Manage Configuration Maps](#lab-16-manage-configuration-maps)
+- [Lab 17  Mount Storage (PV, PVC, Deployment & Route](#lab-17-mount-storage-pv-pvc-deployment-route)
+- [Lab 18  Storage Classes](#lab-18-storage-classes)
+- [Lab 19  StatefulSets](#lab-19-statefulsets)
+- [Lab 20  Mount Storage  PV and PVC](#lab-20-mount-storage-pv-and-pvc)
+- [Lab 21  ServiceAccounts and SCC](#lab-21-serviceaccounts-and-scc)
+- [Lab 22  Install and Configure an Operator (File Integrity Operator)](#lab-22-install-and-configure-an-operator-file-integrity-operator)
+- [Lab 23  Networking: Expose Applications through a Secure Route](#lab-23-networking-expose-applications-through-a-secure-route)
+- [Lab 24  Automatically Scale an Application (Horizontal Pod Autoscaler)](#lab-24-automatically-scale-an-application-horizontal-pod-autoscaler)
+- [Lab 25  Configure a Project Template with a LimitRange](#lab-25-configure-a-project-template-with-a-limitrange)
+- [Lab 26  Configure Network Policies](#lab-26-configure-network-policies)
+- [Lab 27  Configure Liveness Probes](#lab-27-configure-liveness-probes)
+- [Lab 28  Kustomize: Base Resources](#lab-28-kustomize-base-resources)
+- [Lab 29  Kustomize: Overlays and Patches](#lab-29-kustomize-overlays-and-patches)
+- [Lab 30  Import, Export and Configure Kubernetes Resources](#lab-30-import-export-and-configure-kubernetes-resources)
+- [Lab 31  Locate and Examine Container Images](#lab-31-locate-and-examine-container-images)
+- [Lab 32  Query, Format and Filter Kubernetes Resources](#lab-32-query-format-and-filter-kubernetes-resources)
+- [Lab 33  Cluster Health, Status, Events and Alerts](#lab-33-cluster-health-status-events-and-alerts)
+- [Lab 34  Logs and Container/Pod Troubleshooting](#lab-34-logs-and-containerpod-troubleshooting)
+- [Lab 35  Use OpenShift Product Documentation](#lab-35-use-openshift-product-documentation)
+- [Lab 36  Ingress Controller and Cluster Network Ingress](#lab-36-ingress-controller-and-cluster-network-ingress)
+- [Lab 37  Software Defined Networking and Network Troubleshooting](#lab-37-software-defined-networking-and-network-troubleshooting)
+- [Lab 38  TLS for External and Internal Application Traffic](#lab-38-tls-for-external-and-internal-application-traffic)
+- [Lab 39  Configure a LoadBalancer Service](#lab-39-configure-a-loadbalancer-service)
+- [Lab 40  Expose Non-HTTP Applications with SNI](#lab-40-expose-non-http-applications-with-sni)
+- [Lab 41  Operator Lifecycle: Uninstall and Delete](#lab-41-operator-lifecycle-uninstall-and-delete)
+- [Lab 42  Run Privileged Applications and Manage SCC](#lab-42-run-privileged-applications-and-manage-scc)
+- [Lab 43  Configure Application Access to Kubernetes APIs](#lab-43-configure-application-access-to-kubernetes-apis)
+- [Lab 44  Create and Manage Kubernetes CronJobs](#lab-44-create-and-manage-kubernetes-cronjobs)
 
   
 
-## Planned Labs
+## Remaining Labs to Add
 
-The following labs still need to be added:
-Lab 21 — ServiceAccounts and SCC
-Lab 22 — Kustomize
-Lab 23 — Kustomize Overlays
-Lab 24 — NetworkPolicy
-Lab 25 — Routes and TLS
-Lab 26 — Networking and Troubleshooting
-Lab 27 — LoadBalancer, NodePort and SNI
-Lab 28 — Operators
-Lab 29 — Project Templates and Developer Self-Service
-Lab 30 — CronJobs
-Lab 31 — Images, Tags, Digests and Resource Queries
-Lab 32 — OpenShift Troubleshooting
+The existing Labs 1–27 already cover several of the EX280 objectives. The list below contains only the topics that are not yet covered, or are only partially covered, by the current labs.
+
+### Declarative Resource Management
+
+## Lab 28  Kustomize: Base Resources
+- Create a Kustomize base with a Deployment and Service.
+- Add resources through `kustomization.yaml`.
+- Build and apply the base with `oc kustomize` and `oc apply -k`.
+- Verify the generated resources.
+
+## Lab 29  Kustomize: Overlays and Patches
+- Create separate development and production overlays.
+- Change replica counts, image tags, labels and namespaces per overlay.
+- Use patches to modify the base resources.
+- Build and apply each overlay.
+
+## Lab 30  Import, Export and Configure Kubernetes Resources
+- Export existing resources to YAML.
+- Edit exported manifests.
+- Import or apply the manifests to a project.
+- Compare local manifests with live resources and verify the changes.
+
+### Images and Resource Queries
+
+## Lab 31  Locate and Examine Container Images
+- Locate images available from the configured image registries.
+- Inspect image metadata.
+- Identify and compare image tags and digests.
+- Understand the difference between a mutable tag and an immutable digest.
+
+## Lab 32  Query, Format and Filter Kubernetes Resources
+- Query resources with label and field selectors.
+- Format output as YAML, JSON, wide output and custom columns.
+- Extract selected attributes with JSONPath.
+- Filter and inspect resources across projects.
+
+### Cluster Administration and Troubleshooting
+
+## Lab 33  Cluster Health, Status, Events and Alerts
+- Examine nodes and cluster operators.
+- Check cluster version and cluster status.
+- Inspect events across namespaces.
+- Review monitoring alerts and identify their affected resources.
+
+## Lab 34  Logs and Container/Pod Troubleshooting
+- Inspect current and previous container logs.
+- Investigate pod events and describe output.
+- Diagnose common container and pod startup failures.
+- Use resource status and logs to identify the cause of a failure.
+
+## Lab 35  Use OpenShift Product Documentation
+- Find the relevant OpenShift product documentation for a task.
+- Locate command references and resource examples.
+- Check the documentation version against the cluster version.
+- Use documentation to verify resource fields and command options.
+
+### Networking
+
+## Lab 36  Ingress Controller and Cluster Network Ingress
+- Inspect the available Ingress Controllers.
+- Examine the default ingress configuration.
+- Review how Routes are admitted by the ingress controller.
+- Configure and verify the cluster ingress settings required by the task.
+
+## Lab 37  Software Defined Networking and Network Troubleshooting
+- Inspect network-related cluster resources and events.
+- Troubleshoot connectivity between Pods and Services.
+- Check DNS resolution, Service selectors and Endpoints.
+- Investigate common software-defined networking symptoms.
+
+## Lab 38  TLS for External and Internal Application Traffic
+- Review the existing Edge Route exercise in Lab 23.
+- Configure and compare Edge, Re-encrypt and Passthrough Route termination.
+- Use certificates and secrets for TLS.
+- Verify where TLS is terminated and whether traffic from the router to the application is encrypted.
+
+## Lab 39  Configure a LoadBalancer Service
+- Create a Service of type `LoadBalancer`.
+- Inspect its external address and status.
+- Verify access to the application.
+- Compare LoadBalancer with ClusterIP and NodePort service types.
+
+## Lab 40  Expose Non-HTTP Applications with SNI
+- Deploy a non-HTTP application.
+- Expose it using the supported OpenShift routing/SNI mechanism.
+- Configure the required Service and Route settings.
+- Verify client connectivity.
+
+### Operators and Application Security
+
+## Lab 41  Operator Lifecycle: Uninstall and Delete
+- Inspect an installed Operator, its Subscription and ClusterServiceVersion.
+- Uninstall the Operator.
+- Remove the Subscription and related resources where appropriate.
+- Verify which resources remain and clean them up safely.
+
+## Lab 42  Run Privileged Applications and Manage SCC
+- Inspect available Security Context Constraints.
+- Compare `anyuid` and `privileged` SCC permissions.
+- Grant the required SCC to a dedicated ServiceAccount.
+- Deploy and verify an application that requires the privileged SCC.
+- Remove the permission after the exercise.
+
+## Lab 43  Configure Application Access to Kubernetes APIs
+- Create and configure a ServiceAccount.
+- Grant only the required Role or ClusterRole permissions.
+- Bind the permissions to the ServiceAccount.
+- Test API permissions with `oc auth can-i`.
+- Verify that the application can access only the permitted Kubernetes API resources.
+
+### Scheduled Workloads
+
+## Lab 44  Create and Manage Kubernetes CronJobs
+- Create a CronJob with a specified schedule.
+- Configure the Job template and concurrency policy.
+- Suspend and resume the CronJob.
+- Inspect the Jobs and Pods created by the CronJob.
+- Verify logs and clean up the CronJob.
+
+### Coverage notes
+
+The following objectives are already represented in the current README and do not need duplicate labs:
+
+- HTPasswd, users, passwords, groups, RBAC and custom roles: Labs 1–5.
+- ResourceQuota, LimitRange and project resource settings: Labs 6–7 and 24–25.
+- YAML manifests, application deployment, templates and Helm: Labs 8–11.
+- ReplicaSets, labels, selectors and Services: Labs 12–14.
+- Secrets and ConfigMaps: Labs 15–16.
+- ServiceAccounts and SCC basics: Lab 21.
+- Operator installation: Lab 22.
+- Secure Edge Routes and TLS: Lab 23.
+- Project templates and project self-service permissions: Labs 4 and 25.
+- NetworkPolicies: Lab 26.
+- One-time Jobs: Lab 10.
+- Liveness probes: Lab 27.
+- Project creation is exercised throughout the existing labs; project deletion is included in the cleanup exercise.
+
+The web console is already used in Labs 22, 23, 25 and 26. The additional console practice can be incorporated into Labs 33 and 36 rather than creating a duplicate standalone lab.
 
 ---
 
-## Lab 1 — HTPasswd Identity Provider
+## Lab 1  HTPasswd Identity Provider
 
 **Objective:** Configure HTPasswd as an identity provider and manage users
 
@@ -63,7 +205,7 @@ Lab 32 — OpenShift Troubleshooting
 
 **Solution**
 
-**Step 1 — Create the htpasswd file**
+**Step 1  Create the htpasswd file**
 ```bash
 htpasswd -c -B -b htpasswd alice redhat
 htpasswd -B -b htpasswd ted redhat
@@ -74,7 +216,7 @@ htpasswd -B -b htpasswd charlie redhat
 cat htpasswd
 ```
 
-**Step 2 — Create the secret in openshift-config**
+**Step 2  Create the secret in openshift-config**
 ```bash
 oc create secret generic my-htpass-secret \
   --from-file=htpasswd=htpasswd \
@@ -84,7 +226,7 @@ oc create secret generic my-htpass-secret \
 oc get secret my-htpass-secret -n openshift-config
 ```
 
-**Step 3 — Configure OAuth**
+**Step 3  Configure OAuth**
 ```bash
 oc get oauth cluster -o yaml > oauth.yaml
 vi oauth.yaml
@@ -106,13 +248,13 @@ spec:
 oc replace -f oauth.yaml
 ```
 
-**Step 4 — Wait for OAuth to restart**
+**Step 4  Wait for OAuth to restart**
 ```bash
 oc get pods -n openshift-authentication -w
 # Wait until: oauth-openshift-xxxx   1/1   Running
 ```
 
-**Step 5 — Verify users and identities**
+**Step 5  Verify users and identities**
 ```bash
 oc get users
 oc get identities
@@ -120,7 +262,7 @@ oc get identities
 
 ---
 
-## Lab 2 — Managing Users
+## Lab 2  Managing Users
 
 **Objective:** Remove a user and change a user password
 
@@ -133,7 +275,7 @@ oc get identities
 
 **Solution**
 
-**Step 1 — Remove ted from htpasswd and update the secret**
+**Step 1  Remove ted from htpasswd and update the secret**
 ```bash
 htpasswd -D htpasswd ted
 
@@ -147,22 +289,22 @@ oc create secret generic my-htpass-secret \
   -n openshift-config | oc replace -f -
 ```
 
-**Step 2 — Clean up OpenShift objects**
+**Step 2  Clean up OpenShift objects**
 ```bash
 oc delete user ted
 oc delete identity developer:ted
 ```
 
-**Step 3 — Verify**
+**Step 3  Verify**
 ```bash
 oc login -u ted -p redhat
-# Should fail ❌
+# Should fail 
 
 oc login -u alice -p redhat
-# Should succeed ✅
+# Should succeed 
 ```
 
-**Step 4 — Change alice's password**
+**Step 4  Change alice's password**
 ```bash
 htpasswd -B -b htpasswd alice password
 
@@ -176,15 +318,15 @@ oc create secret generic my-htpass-secret \
 oc get pods -n openshift-authentication -w
 ```
 
-**Step 5 — Verify new password**
+**Step 5  Verify new password**
 ```bash
 oc login -u alice -p password
-# Should succeed ✅
+# Should succeed 
 ```
 
 ---
 
-## Lab 3 — Managing Groups
+## Lab 3  Managing Groups
 
 **Objective:** Create groups, assign users and manage group permissions
 
@@ -197,27 +339,27 @@ oc login -u alice -p password
 
 **Solution**
 
-**Step 1 — Create the project**
+**Step 1  Create the project**
 ```bash
 oc new-project manage-groups
 ```
 
-**Step 2 — Create the group and add users**
+**Step 2  Create the group and add users**
 ```bash
 oc adm groups new testers alice bob charlie
 ```
 
-**Step 3 — Assign the view role to the group**
+**Step 3  Assign the view role to the group**
 ```bash
 oc adm policy add-role-to-group view testers -n manage-groups
 ```
 
-**Step 4 — Remove alice from the group**
+**Step 4  Remove alice from the group**
 ```bash
 oc adm groups remove-users testers alice
 ```
 
-**Step 5 — Verify**
+**Step 5  Verify**
 ```bash
 oc describe group testers
 oc get rolebindings -n manage-groups
@@ -225,7 +367,7 @@ oc get rolebindings -n manage-groups
 
 ---
 
-## Lab 4 — RBAC and Permissions
+## Lab 4  RBAC and Permissions
 
 **Objective:** Manage cluster roles, project roles and self-provisioner permissions
 
@@ -240,48 +382,48 @@ oc get rolebindings -n manage-groups
 
 **Solution**
 
-**Step 1 — View cluster role bindings**
+**Step 1  View cluster role bindings**
 ```bash
 oc get clusterrolebindings -o wide | grep self
 oc describe clusterrolebinding.rbac self-provisioners
 ```
 
-**Step 2 — Test as alice**
+**Step 2  Test as alice**
 ```bash
 oc login -u alice -p password
 oc new-project alice10
-# Succeeds by default ✅
+# Succeeds by default 
 ```
 
-**Step 3 — Remove self-provisioner from all OAuth users**
+**Step 3  Remove self-provisioner from all OAuth users**
 ```bash
 oc login -u kubeadmin
 oc adm policy remove-cluster-role-from-group self-provisioner system:authenticated:oauth
 ```
 
-**Step 4 — Verify alice can no longer create projects**
+**Step 4  Verify alice can no longer create projects**
 ```bash
 oc login -u alice -p password
 oc new-project alice10
-# Should fail ❌
+# Should fail 
 ```
 
-**Step 5 — Check who can create projects**
+**Step 5  Check who can create projects**
 ```bash
 oc adm policy who-can create project
 ```
 
-**Step 6 — Grant alice self-provisioner explicitly**
+**Step 6  Grant alice self-provisioner explicitly**
 ```bash
 oc adm policy add-cluster-role-to-user self-provisioner alice
 
 # Verify
 oc login -u alice -p password
 oc new-project alice22
-# Should succeed ✅
+# Should succeed 
 ```
 
-**Step 7 — Create project and grant bob admin rights**
+**Step 7  Create project and grant bob admin rights**
 ```bash
 oc login -u kubeadmin
 oc new-project permissions
@@ -291,7 +433,7 @@ oc policy add-role-to-user admin bob -n permissions
 oc get rolebinding -o wide -n permissions
 ```
 
-**Step 8 — Create developers group and add bob**
+**Step 8  Create developers group and add bob**
 ```bash
 oc adm groups new developers
 oc adm groups add-users developers bob
@@ -299,7 +441,7 @@ oc adm groups add-users developers bob
 
 ---
 
-## Lab 4b — User Roles and Permissions
+## Lab 4b  User Roles and Permissions
 
 **Objective:** Manage user roles and permissions in OpenShift
 
@@ -332,7 +474,7 @@ oc adm policy remove-cluster-role-from-user self-provisioner alice
 
 ---
 
-## Lab 4c — Project Permissions
+## Lab 4c  Project Permissions
 
 **Objective:** Set up project permissions for users and groups
 
@@ -400,7 +542,7 @@ oc adm policy who-can create deployments -n avalon | grep alice
 
 ---
 
-## Lab 5 — Custom Roles
+## Lab 5  Custom Roles
 
 **Objective:** Create a custom role and assign it to a user
 
@@ -429,7 +571,7 @@ oc get rolebindings -n nagas
 
 ---
 
-## Lab 6 — Resource Quota
+## Lab 6  Resource Quota
 
 **Objective:** Create a ResourceQuota for the neptune project
 
@@ -456,7 +598,7 @@ oc describe quota neptune-quota -n neptune
 
 ---
 
-## Lab 7 — LimitRange
+## Lab 7  LimitRange
 
 **Task details:**
 
@@ -474,22 +616,22 @@ Create a LimitRange named `avalon-limits` in the `avalon` namespace.
 **Solution**
 
 ```bash
-# Step 1 — Switch to the avalon project
+# Step 1  Switch to the avalon project
 oc project avalon
 
-# Step 2 — Create the LimitRange manifest
+# Step 2  Create the LimitRange manifest
 vi limitrange.yaml
 
-# Step 3 — Apply the LimitRange
+# Step 3  Apply the LimitRange
 oc apply -f limitrange.yaml
 
-# Step 4 — Verify the LimitRange
+# Step 4  Verify the LimitRange
 oc describe limitrange avalon-limits
 ```
 
 ---
 
-## Lab 8 — Deploy from Resource Manifests
+## Lab 8  Deploy from Resource Manifests
 
 **Objective:** Deploy and manage an application using YAML manifests
 
@@ -508,45 +650,45 @@ oc describe limitrange avalon-limits
 **Solution**
 
 ```bash
-# Step 1 — Create the project and generate the manifest
+# Step 1  Create the project and generate the manifest
 oc new-project manifests-demo
 
 oc create deployment webserver --image=bitnami/nginx \
   -o yaml --dry-run=client --save-config > webserver.yaml
 
-# Step 2 — Edit the manifest
+# Step 2  Edit the manifest
 vi webserver.yaml
-# Change: replicas: 1 → replicas: 3
+# Change: replicas: 1 $)B�� replicas: 3
 
-# Step 3 — Apply the manifest
+# Step 3  Apply the manifest
 oc apply -f webserver.yaml
 
-# Step 4 — Verify
+# Step 4  Verify
 oc get pods -w
 
-# Step 5 — Update replicas to 5
+# Step 5  Update replicas to 5
 vi webserver.yaml
-# Change: replicas: 3 → replicas: 5
+# Change: replicas: 3 �� replicas: 5
 
-# Step 6 — Validate with dry-run
+# Step 6  Validate with dry-run
 oc apply -f webserver.yaml --dry-run=server --validate=true
 
-# Step 7 — Check the diff
+# Step 7  Check the diff
 oc diff -f webserver.yaml
 
-# Step 8 — Apply the update
+# Step 8  Apply the update
 oc apply -f webserver.yaml
 
-# Step 9 — Restart the deployment
+# Step 9  Restart the deployment
 oc rollout restart deployment webserver
 
-# Step 10 — Delete all resources
+# Step 10  Delete all resources
 oc delete -f webserver.yaml
 ```
 
 ---
 
-## Lab 9 — Deploy from Images, Templates and Helm Charts
+## Lab 9  Deploy from Images, Templates and Helm Charts
 
 **Objective**
 
@@ -557,13 +699,13 @@ Deploy applications using three different methods:
 
 **Task details:**
 
-**Part 1 — Deploy from image**
+**Part 1  Deploy from image**
 
 1. Create a new project called `deploy-demo`
 2. Deploy an application named `myapp` using the image `docker.io/bitnami/nginx`
 3. Verify the Pods are running
 
-**Part 2 — Deploy from OpenShift template**
+**Part 2  Deploy from OpenShift template**
 
 4. List the available templates in the `openshift` namespace
 5. Examine the `httpd-example` template to see its parameters
@@ -571,7 +713,7 @@ Deploy applications using three different methods:
 7. Process the template with parameter `NAME=frontend` and label `app=web`, then apply it to the cluster
 8. Verify the created resources
 
-**Part 3 — Deploy from Helm chart**
+**Part 3  Deploy from Helm chart**
 
 9. Add the Helm repository with the name `nginx-repo` using `https://kubernetesway.github.io/my-helm-repo`
 10. Update the Helm repository index
@@ -584,13 +726,13 @@ Deploy applications using three different methods:
 **Solution**
 
 ```bash
-# Part 1 — Deploy from image
+# Part 1  Deploy from image
 
 oc new-project deploy-demo
 oc new-app --image=docker.io/bitnami/nginx --name=myapp --allow-missing-images
 oc get pods -w
 
-# Part 2 — Deploy from OpenShift template
+# Part 2  Deploy from OpenShift template
 
 # List available templates
 oc get templates -n openshift
@@ -613,7 +755,7 @@ oc process httpd-example -n openshift \
 # Verify the created resources
 oc get all -l app=web
 
-# Part 3 — Deploy from Helm chart
+# Part 3  Deploy from Helm chart
 
 # Add the Helm repository
 helm repo add nginx-repo https://kubernetesway.github.io/my-helm-repo
@@ -647,7 +789,7 @@ helm uninstall example-app
 
 ---
 
-## Lab 10 — Deploy Jobs for One-time Tasks
+## Lab 10  Deploy Jobs for One-time Tasks
 
 **Objective:** Create and manage a Job in OpenShift for a one-time task.
 
@@ -663,7 +805,7 @@ helm uninstall example-app
 
 **Solution**
 
-**Step 1 — Generate and save the manifest**
+**Step 1  Generate and save the manifest**
 
 ```bash
 oc create job one-time-task \
@@ -672,7 +814,7 @@ oc create job one-time-task \
   -- ls > myjob.yaml
 ```
 
-**Step 2 — Edit the manifest**
+**Step 2  Edit the manifest**
 
 ```bash
 vi myjob.yaml
@@ -693,33 +835,33 @@ spec:
       restartPolicy: Never
 ```
 
-**Step 3 — Deploy the Job**
+**Step 3  Deploy the Job**
 
 ```bash
 oc create -f myjob.yaml
 ```
 
-**Step 4 — Monitor the Job status**
+**Step 4  Monitor the Job status**
 
 ```bash
 oc get jobs
 oc get pods
 ```
 
-**Step 5 — View the Job Pod logs**
+**Step 5  View the Job Pod logs**
 
 ```bash
 oc logs <pod-name>
 ```
 
-**Step 6 — Delete the Job manually**
+**Step 6  Delete the Job manually**
 
 ```bash
 oc delete job one-time-task
 ```
 
 ---
-## Lab 11 — Manage Application Deployments
+## Lab 11  Manage Application Deployments
 
 **Objective:** Deploy, update, scale, rollback and monitor an application deployment
 
@@ -740,12 +882,12 @@ oc delete job one-time-task
 
 **Solution**
 
-**Step 1 — Create the project**
+**Step 1  Create the project**
 ```bash
 oc new-project deployment-demo
 ```
 
-**Step 2 — Create the manifest**
+**Step 2  Create the manifest**
 ```bash
 vi httpd-deployment.yaml
 ```
@@ -776,51 +918,51 @@ spec:
 ```
 
 ```bash
-# Step 3 — Apply and verify
+# Step 3  Apply and verify
 oc apply -f httpd-deployment.yaml
 oc get pods -w
 
-# Step 4 — Monitor rollout
+# Step 4  Monitor rollout
 oc rollout status deployment httpd-deployment
 
-# Step 5 — Update the image
+# Step 5  Update the image
 oc set image deployment/httpd-deployment httpd=nginxinc/nginx-unprivileged:alpine
 
-# Step 6 — Monitor and verify update
+# Step 6  Monitor and verify update
 oc rollout status deployment httpd-deployment
 oc get all
 
-# Step 7 — View rollout history
+# Step 7  View rollout history
 oc rollout history deployment httpd-deployment
 oc rollout history deployment httpd-deployment --revision=1
 oc rollout history deployment httpd-deployment --revision=2
 
-# Step 8 — Rollback to previous version
+# Step 8  Rollback to previous version
 oc rollout undo deployment httpd-deployment
 
-# Step 9 — Verify rollback
+# Step 9  Verify rollback
 oc describe pod <pod-name> | grep Image
 
-# Step 10 — Scale to 5 replicas
+# Step 10  Scale to 5 replicas
 oc scale deployment httpd-deployment --replicas=5
 oc get pods
 
-# Step 11 — Pause the deployment
+# Step 11  Pause the deployment
 oc rollout pause deployment httpd-deployment
 
-# Step 12 — Resume the deployment
+# Step 12  Resume the deployment
 oc rollout resume deployment httpd-deployment
 
-# Step 13 — Change strategy to Recreate
+# Step 13  Change strategy to Recreate
 vi httpd-deployment.yaml
-# Change: type: RollingUpdate → type: Recreate
+# Change: type: RollingUpdate �� type: Recreate
 # Remove the rollingUpdate section entirely
 oc apply -f httpd-deployment.yaml
 ```
 
 ---
 
-## Lab 12 — ReplicaSets
+## Lab 12  ReplicaSets
 
 **Objective:** Understand and manage ReplicaSets in OpenShift
 
@@ -840,7 +982,7 @@ oc apply -f httpd-deployment.yaml
 
 **Solution**
 
-**Step 1 — Create the ReplicaSet manifest**
+**Step 1  Create the ReplicaSet manifest**
 ```bash
 vi replicaset.yaml
 ```
@@ -866,60 +1008,60 @@ spec:
 ```
 
 ```bash
-# Step 2 — Apply and verify
+# Step 2  Apply and verify
 oc apply -f replicaset.yaml
 oc get pods -w
 
-# Step 3 — Check ReplicaSet status
+# Step 3  Check ReplicaSet status
 oc get rs
 oc describe rs my-replicaset
 
-# Step 4 — Scale to 5 replicas
+# Step 4  Scale to 5 replicas
 oc scale rs my-replicaset --replicas=5
 oc get pods
 
-# Step 5 — Scale down to 2 via manifest
+# Step 5  Scale down to 2 via manifest
 vi replicaset.yaml
-# Change: replicas: 3 → replicas: 2
+# Change: replicas: 3 �� replicas: 2
 oc apply -f replicaset.yaml
 oc get pods
 
-# Step 6 — Delete one pod manually
+# Step 6  Delete one pod manually
 oc get pods
 oc delete pod <pod-name>
 oc get pods
-# ReplicaSet recreates the pod automatically ✅
+# ReplicaSet recreates the pod automatically 
 
-# Step 7 — Create a Deployment
+# Step 7  Create a Deployment
 oc create deployment my-app-deployment \
   --image=docker.io/bitnami/nginx \
   --replicas=3
 
-# Step 8 — Observe the ReplicaSet
+# Step 8  Observe the ReplicaSet
 oc get rs
 oc get all
 
-# Step 9 — Update the image
+# Step 9  Update the image
 oc set image deployment/my-app-deployment nginx=docker.io/nginx
 
-# Step 10 — Observe new ReplicaSet
+# Step 10  Observe new ReplicaSet
 oc get rs
-# New ReplicaSet scales up, old ReplicaSet scales to 0 ✅
+# New ReplicaSet scales up, old ReplicaSet scales to 0 
 
-# Step 11 — Delete the ReplicaSet directly
+# Step 11  Delete the ReplicaSet directly
 oc get rs
 oc delete rs <replicaset-name>
 oc get rs
-# Deployment immediately recreates the ReplicaSet ✅
+# Deployment immediately recreates the ReplicaSet 
 
-# Step 12 — Delete the Deployment
+# Step 12  Delete the Deployment
 oc delete deployment my-app-deployment
 oc delete rs my-replicaset
 ```
 
 ---
 
-## Lab 13 — Labels and Selectors
+## Lab 13  Labels and Selectors
 
 **Objective:** Assign labels to resources, query with selectors and manage labels dynamically
 
@@ -935,7 +1077,7 @@ oc delete rs my-replicaset
 
 **Solution**
 
-**Step 1 — Create the Pod manifest**
+**Step 1  Create the Pod manifest**
 ```bash
 vi label-pod.yaml
 ```
@@ -961,18 +1103,18 @@ spec:
 ```
 
 ```bash
-# Step 2 — Deploy and verify
+# Step 2  Deploy and verify
 oc create -f label-pod.yaml
 oc get pod my-labeled-pod --show-labels
 
-# Step 3 — Query by label (equality-based)
+# Step 3  Query by label (equality-based)
 oc get pod -l app=my-app
 
 # Query by label (set-based)
 oc get pod -l 'environment in (production,staging)'
 ```
 
-**Step 4 — Create Deployment with selector**
+**Step 4  Create Deployment with selector**
 ```bash
 vi selector-deployment.yaml
 ```
@@ -1000,22 +1142,22 @@ spec:
 ```bash
 oc apply -f selector-deployment.yaml
 
-# Step 5 — Update environment label
+# Step 5  Update environment label
 oc label pod my-labeled-pod environment=staging --overwrite=true
 
-# Step 6 — Verify updated label
+# Step 6  Verify updated label
 oc describe pod my-labeled-pod | grep Labels
 
-# Step 7 — Remove tier label
+# Step 7  Remove tier label
 oc label pod my-labeled-pod tier-
 
-# Step 8 — Verify tier label is gone
+# Step 8  Verify tier label is gone
 oc describe pod my-labeled-pod | grep Labels
 ```
 
 ---
 
-## Lab 14 — Configure Services
+## Lab 14  Configure Services
 
 **Objective:** Deploy an application, expose it as a service and create a route for external access
 
@@ -1034,36 +1176,36 @@ oc describe pod my-labeled-pod | grep Labels
 **Solution**
 
 ```bash
-# Step 1 — Create the project
+# Step 1  Create the project
 oc new-project httpdemo
 
-# Step 2 — Deploy the application
+# Step 2  Deploy the application
 oc create deployment my-http-app --image=docker.io/bitnami/nginx
 
-# Step 3 — Verify pods
+# Step 3  Verify pods
 oc get pods -w
 
-# Step 4 — Expose the application as a service
+# Step 4  Expose the application as a service
 oc expose deployment my-http-app --port=8080
 
-# Step 5 — Verify the service
+# Step 5  Verify the service
 oc get service
 
-# Step 6 — Create a route
+# Step 6  Create a route
 oc expose service my-http-app --hostname=my-app.httpdemo.apps-crc.testing
 
-# Step 7 — Verify the route
+# Step 7  Verify the route
 oc get route
 
-# Step 8 — Describe the route
+# Step 8  Describe the route
 oc describe route my-http-app
 
-# Step 9 — Test the route
+# Step 9  Test the route
 curl http://my-app.httpdemo.apps-crc.testing
 ```
 
 ---
-## Lab 15 — Manage Secrets
+## Lab 15  Manage Secrets
 
 **Objective:** Create, inspect and use OpenShift Secrets to securely manage sensitive application data
 
@@ -1084,19 +1226,19 @@ curl http://my-app.httpdemo.apps-crc.testing
 **Solution**
 
 ```bash
-# Step 1 — Create the project
+# Step 1  Create the project
 oc new-project secrets-demo
 
-# Step 2 — Create a generic Secret
+# Step 2  Create a generic Secret
 oc create secret generic my-secret \
   --from-literal=username=myuser \
   --from-literal=password=mypassword
 
-# Step 3 — Verify the Secret
+# Step 3  Verify the Secret
 oc get secret my-secret
 oc describe secret my-secret
 
-# Step 4 — Create a Secret from files
+# Step 4  Create a Secret from files
 echo -n 'myuser' > username.txt
 echo -n 'mypassword' > password.txt
 
@@ -1107,7 +1249,7 @@ oc create secret generic my-file-secret \
 # Verify
 oc describe secret my-file-secret
 
-# Step 5 — Create a Pod using Secret environment variables
+# Step 5  Create a Pod using Secret environment variables
 vi secret-pod.yaml
 ```
 
@@ -1143,11 +1285,11 @@ spec:
 # Create the Pod
 oc apply -f secret-pod.yaml
 
-# Step 6 — Verify the Secret values
+# Step 6  Verify the Secret values
 oc get pod secret-pod
 oc logs secret-pod
 
-# Step 7 — Create a Pod with the Secret mounted as files
+# Step 7  Create a Pod with the Secret mounted as files
 vi secret-volume-pod.yaml
 ```
 
@@ -1185,10 +1327,10 @@ oc run secret-volume-pod --image=bitnami/nginx --dry-run=client -o yaml | oc set
 
 oc apply -f secret-volume-pod.yaml
 
-# Step 8 — Verify the mounted files
+# Step 8  Verify the mounted files
 oc logs secret-volume-pod
 
-# Step 9 — Create a Docker registry Secret
+# Step 9  Create a Docker registry Secret
 oc create secret docker-registry registry-secret \
   --docker-server=registry.example.com \
   --docker-username=myuser \
@@ -1197,7 +1339,7 @@ oc create secret docker-registry registry-secret \
 # Verify
 oc get secret registry-secret
 
-# Step 10 — Create a TLS Secret
+# Step 10  Create a TLS Secret
 oc create secret tls my-tls-secret \
   --cert=tls.crt \
   --key=tls.key
@@ -1205,10 +1347,10 @@ oc create secret tls my-tls-secret \
 # Verify
 oc get secret my-tls-secret
 
-# Step 11 — Inspect Secret data
+# Step 11  Inspect Secret data
 oc get secret my-secret -o yaml
 
-# Step 12 — Decode a Base64 encoded value
+# Step 12  Decode a Base64 encoded value
 echo 'bXl1c2Vy' | base64 -d
 # Output: myuser
 ```
@@ -1217,33 +1359,33 @@ echo 'bXl1c2Vy' | base64 -d
 
 ```text
 oc create secret generic
-    → Generic Secret
+    �� Generic Secret
 
 --from-literal
-    → Secret value directly from command line
+    �� Secret value directly from command line
 
 --from-file
-    → Secret value from file
+    �� Secret value from file
 
 secretKeyRef
-    → Specific Secret key as environment variable
+    �� Specific Secret key as environment variable
 
 volumes.secret
-    → Secret mounted as files
+    �� Secret mounted as files
 
 oc create secret docker-registry
-    → Registry credentials
+    �� Registry credentials
 
 oc create secret tls
-    → TLS certificate and key
+    �� TLS certificate and key
 
 Base64
-    → Encoding, not encryption
+    �� Encoding, not encryption
 ```
 
 ---
 
-## Lab 16 — Manage Configuration Maps
+## Lab 16  Manage Configuration Maps
 
 **Objective:** Create and use OpenShift ConfigMaps to manage non-sensitive application configuration
 
@@ -1264,30 +1406,30 @@ Base64
 **Solution**
 
 ```bash
-# Step 1 — Create the project
+# Step 1  Create the project
 oc new-project config-demo
 
-# Step 2 — Create a ConfigMap
+# Step 2  Create a ConfigMap
 oc create configmap my-config \
   --from-literal=APP_ENV=production \
   --from-literal=APP_DEBUG=false
 
-# Step 3 — Verify the ConfigMap
+# Step 3  Verify the ConfigMap
 oc get configmap my-config
 oc describe configmap my-config
 
-# Step 4 — Create the custom web page
+# Step 4  Create the custom web page
 echo '<html><body><h1>Hello from OpenShift ConfigMap</h1></body></html>' > index.html
 
-# Step 5 — Create a ConfigMap from the file
+# Step 5  Create a ConfigMap from the file
 oc create configmap nginx-config \
   --from-file=index.html
 
-# Step 6 — Verify the ConfigMap
+# Step 6  Verify the ConfigMap
 oc get configmap nginx-config
 oc describe configmap nginx-config
 
-# Step 7-8 — Create the nginx Pod and mount the ConfigMap
+# Step 7-8  Create the nginx Pod and mount the ConfigMap
 oc run cm-nginx --image=bitnami/nginx --dry-run=client -o yaml | oc set volume -f - --add --name=nginx-config-vol --type=configmap --configmap-name=nginx-config --mount-path=/app --local -o yaml > cm-nginx.yaml
 
 
@@ -1297,12 +1439,12 @@ oc run cm-nginx --image=bitnami/nginx --dry-run=client -o yaml | oc set volume -
 # Create the Pod
 oc apply -f cm-nginx-pod.yaml
 
-# Step 9 — Verify the mounted file
+# Step 9  Verify the mounted file
 oc get pod cm-nginx
 oc exec cm-nginx -- ls -l /app
 oc exec cm-nginx -- cat /app/index.html
 
-# Step 10 — Port forward to the nginx Pod
+# Step 10  Port forward to the nginx Pod
 oc port-forward pod/cm-nginx 8080:8080
 ```
 
@@ -1313,13 +1455,13 @@ http://localhost:8080
 ```
 
 ```bash
-# Step 11 — Use the ConfigMap as environment variables
+# Step 11  Use the ConfigMap as environment variables
 oc run cm-env-pod --image=bitnami/nginx --env-from-configmap=my-config --dry-run=client -o yaml > cm-env-pod.yaml
 
 # Verify
 oc logs cm-env-pod
 
-# Step 12 — Inspect the ConfigMap
+# Step 12  Inspect the ConfigMap
 oc get configmap my-config -o yaml
 ```
 
@@ -1327,33 +1469,33 @@ oc get configmap my-config -o yaml
 
 ```text
 oc create configmap
-    → Create a ConfigMap
+    �� Create a ConfigMap
 
 --from-literal
-    → Configuration value directly from command line
+    �� Configuration value directly from command line
 
 --from-file
-    → Configuration from a file
+    �� Configuration from a file
 
 envFrom
-    → Import ConfigMap keys as environment variables
+    �� Import ConfigMap keys as environment variables
 
 configMap volume
-    → Mount ConfigMap data as files
+    �� Mount ConfigMap data as files
 
 ConfigMap
-    → Non-sensitive configuration
+    �� Non-sensitive configuration
 
 Secret
-    → Sensitive data such as passwords and credentials
+    �� Sensitive data such as passwords and credentials
 
 Base64
-    → ConfigMaps store data as plain text
+    �� ConfigMaps store data as plain text
 ```
 
 ---
 
-## Lab 17 — Mount Storage (PV, PVC, Deployment & Route)
+## Lab 17  Mount Storage (PV, PVC, Deployment & Route)
 
 **Objective:** Create and use persistent storage with PersistentVolumes (PV), PersistentVolumeClaims (PVC), Deployments and Routes in OpenShift using an NFS backend.
 
@@ -1383,14 +1525,14 @@ Base64
 **Solution**
 
 ```bash
-# Step 1 — Inspect the StorageClass
+# Step 1  Inspect the StorageClass
 oc get storageclass
 oc describe storageclass <storageclass-name>
 
-# Step 2 — Create the project
+# Step 2  Create the project
 oc new-project webserver
 
-# Step 3 — Create the PersistentVolume
+# Step 3  Create the PersistentVolume
 vi web-pv.yaml
 ```
 
@@ -1419,7 +1561,7 @@ oc apply -f web-pv.yaml
 # Verify
 oc get pv web-pv
 
-# Step 4 — Create the PersistentVolumeClaim
+# Step 4  Create the PersistentVolumeClaim
 vi web-pvc.yaml
 ```
 
@@ -1443,11 +1585,11 @@ spec:
 # Apply the PersistentVolumeClaim
 oc apply -f web-pvc.yaml
 
-# Step 5 — Verify the PVC is bound
+# Step 5  Verify the PVC is bound
 oc get pvc web-pvc -n webserver
 oc get pv web-pv
 
-# Step 6 — Create the Deployment
+# Step 6  Create the Deployment
 vi deployment.yaml
 ```
 
@@ -1491,7 +1633,7 @@ oc apply -f deployment.yaml
 oc get deployment web-landing -n webserver
 oc get pods -n webserver
 
-# Step 7 — Expose via Service and secure Edge Route
+# Step 7  Expose via Service and secure Edge Route
 oc expose deployment web-landing --port=80 --target-port=80 -n webserver
 
 oc create route edge web-route \
@@ -1499,7 +1641,7 @@ oc create route edge web-route \
   --hostname=exoplanets-declarative-manifests.apps.ocp4.example.com \
   -n webserver
 
-# Step 8 — Verify the Route
+# Step 8  Verify the Route
 oc get route web-route -n webserver
 
 # Test application access
@@ -1524,7 +1666,7 @@ HTTP/1.1 200 OK
 
 ---
 
-## Lab 18 — Storage Classes
+## Lab 18  Storage Classes
 
 **Objective:** Use StorageClasses to dynamically provision persistent storage in OpenShift
 
@@ -1545,16 +1687,16 @@ HTTP/1.1 200 OK
 **Solution**
 
 ```bash
-# Step 1 — Create the project
+# Step 1  Create the project
 oc new-project storageclass-demo
 
-# Step 2 — List the available StorageClasses
+# Step 2  List the available StorageClasses
 oc get storageclass
 
-# Step 3 — Identify the default StorageClass
+# Step 3  Identify the default StorageClass
 oc get storageclass
 
-# Step 4-5 — Create a PVC using the default StorageClass
+# Step 4-5  Create a PVC using the default StorageClass
 vi pvc.yaml
 ```
 
@@ -1577,13 +1719,13 @@ spec:
 # Create the PVC
 oc apply -f pvc.yaml
 
-# Step 6 — Verify the PVC
+# Step 6  Verify the PVC
 oc get pvc
 
-# Step 7 — Verify the dynamically created PV
+# Step 7  Verify the dynamically created PV
 oc get pv
 
-# Step 8-9 — Create a Pod using the PVC
+# Step 8-9  Create a Pod using the PVC
 vi storage-pod.yaml
 ```
 
@@ -1618,11 +1760,11 @@ oc apply -f storage-pod.yaml
 # Verify the Pod
 oc get pod storage-pod
 
-# Step 10 — Create and verify a file
+# Step 10  Create and verify a file
 oc exec storage-pod -- sh -c 'echo "StorageClass works" > /data/storage-test.txt'
 oc exec storage-pod -- cat /data/storage-test.txt
 
-# Step 11 — Inspect the StorageClass, PVC and PV
+# Step 11  Inspect the StorageClass, PVC and PV
 oc get storageclass
 oc describe pvc my-hostpath-claim
 oc get pv
@@ -1632,30 +1774,30 @@ oc get pv
 
 ```text
 StorageClass
-    → Defines how storage is dynamically provisioned
+    �� Defines how storage is dynamically provisioned
 
 PVC
-    → Requests storage from a StorageClass
+    �� Requests storage from a StorageClass
 
 StorageClass
-    ↓
+    ��
 PVC
-    ↓
+    ��
 Dynamic PV
-    ↓
+    ��
 Pod
 
 Static provisioning
-    → Administrator creates PV manually
+    �� Administrator creates PV manually
 
 Dynamic provisioning
-    → PVC requests storage
-    → StorageClass automatically provisions the PV
+    �� PVC requests storage
+    �� StorageClass automatically provisions the PV
 ```
 
 ---
 
-## Lab 19 — StatefulSets
+## Lab 19  StatefulSets
 
 **Objective:** Deploy and manage stateful applications using StatefulSets with stable identities and dedicated persistent storage
 
@@ -1686,10 +1828,10 @@ Dynamic provisioning
 **Solution**
 
 ```bash
-# Step 1 — Create the project
+# Step 1  Create the project
 oc new-project stateful-demo
 
-# Step 2 — Create the headless Service
+# Step 2  Create the headless Service
 vi mysql-service.yaml
 ```
 
@@ -1713,7 +1855,7 @@ spec:
 # Create the Service
 oc apply -f mysql-service.yaml
 
-# Step 3-6 — Create the StatefulSet
+# Step 3-6  Create the StatefulSet
 vi mysql-statefulset.yaml
 ```
 
@@ -1758,26 +1900,26 @@ spec:
 ```
 
 ```bash
-# Step 7 — Create the StatefulSet
+# Step 7  Create the StatefulSet
 oc apply -f mysql-statefulset.yaml
 
-# Step 8 — Verify the StatefulSet, Pods and Service
+# Step 8  Verify the StatefulSet, Pods and Service
 oc get statefulset
 oc get pods
 oc get service
 
-# Step 9 — Verify the PVCs and PVs
+# Step 9  Verify the PVCs and PVs
 oc get pvc
 oc get pv
 
-# Step 10 — Scale the StatefulSet
+# Step 10  Scale the StatefulSet
 oc scale statefulset mysql --replicas=3
 
-# Step 11 — Verify the new Pod and PVC
+# Step 11  Verify the new Pod and PVC
 oc get pods
 oc get pvc
 
-# Step 12 — Delete a Pod
+# Step 12  Delete a Pod
 oc delete pod mysql-0
 
 # Verify that the Pod is recreated with the same name
@@ -1788,34 +1930,34 @@ oc get pods
 
 ```text
 Deployment
-    → Stateless applications
-    → Pods have replaceable identities
+    �� Stateless applications
+    �� Pods have replaceable identities
 
 StatefulSet
-    → Stateful applications
-    → Pods have stable identities
+    �� Stateful applications
+    �� Pods have stable identities
 
 StatefulSet
-    ↓
+    ��
 mysql-0
 mysql-1
 mysql-2
 
 volumeClaimTemplates
-    ↓
+    ��
 One PVC per Pod
 
 Headless Service
-    → clusterIP: None
-    → Stable network identities
+    �� clusterIP: None
+    �� Stable network identities
 
 StatefulSet
-    → Stable Pod names
-    → Ordered creation/scaling
-    → Dedicated storage per Pod
+    �� Stable Pod names
+    �� Ordered creation/scaling
+    �� Dedicated storage per Pod
 ```
 
-## Lab 20 — Mount Storage — PV and PVC
+## Lab 20  Mount Storage  PV and PVC
 
 ## Task
 
@@ -1851,14 +1993,14 @@ Deploy:
 **Solution**
 
 ```bash
-# Step 1 — Create project
+# Step 1  Create project
 oc new-project webserver
 
-# Step 2 — Inspect the existing StorageClass
+# Step 2  Inspect the existing StorageClass
 oc get storageclass
 oc describe storageclass <nfs-storageclass>
 
-# Step 3 — Create a temporary PVC to discover NFS details
+# Step 3  Create a temporary PVC to discover NFS details
 # Use the existing/default NFS StorageClass.
 # The dynamically created PV reveals:
 # - NFS server
@@ -1870,33 +2012,33 @@ oc get pvc
 oc get pv
 oc get pv <temporary-pv> -o yaml
 
-# Step 4 — Create the required PV
+# Step 4  Create the required PV
 vi web-pv.yaml
 
 # Use the NFS server, path, volumeMode and reclaimPolicy
 # discovered from the temporary PV.
 
-# Step 5 — Apply the PV
+# Step 5  Apply the PV
 oc apply -f web-pv.yaml
 
-# Step 6 — Create the PVC
+# Step 6  Create the PVC
 vi web-pvc.yaml
 
-# Step 7 — Apply the PVC
+# Step 7  Apply the PVC
 oc apply -f web-pvc.yaml
 
-# Step 8 — Verify PV/PVC binding
+# Step 8  Verify PV/PVC binding
 oc get pv
 oc get pvc
 
-# Step 9 — Create the Deployment
+# Step 9  Create the Deployment
 oc create deployment web-landing \
   --image=registry.ocp4.example.com:8443/redhattraining/hello-world-nginx:v1.0
 
-# Step 10 — Scale to 3 replicas
+# Step 10  Scale to 3 replicas
 oc scale deployment web-landing --replicas=3
 
-# Step 11 — Mount the PVC
+# Step 11  Mount the PVC
 oc set volume deployment/web-landing \
   --add \
   --name=web-content \
@@ -1905,15 +2047,15 @@ oc set volume deployment/web-landing \
   --mount-path=/usr/share/nginx/html \
   --read-only
 
-# Step 12 — Create Service
+# Step 12  Create Service
 oc expose deployment web-landing
 
-# Step 13 — Create Route
+# Step 13  Create Route
 oc create route edge web-landing-route \
   --service=web-landing \
   --hostname=exoplanets-declarative-manifests.apps.ocp4.example.com
 
-# Step 14 — Verify
+# Step 14  Verify
 oc get pv
 oc get pvc
 oc get deployment
@@ -1922,7 +2064,7 @@ oc get svc
 oc get route
 ```
 
-## Lab 21 — ServiceAccounts and SCC
+## Lab 21  ServiceAccounts and SCC
 
 **Objective:** Configure a ServiceAccount with permission to run Pods as any user and deploy an application using that ServiceAccount.
 
@@ -1963,7 +2105,7 @@ oc get pods,svc,routes -n production
 
 **Success criteria:** The `redhat-sa` ServiceAccount exists, is allowed to use `anyuid`, and the existing `team` Deployment uses that ServiceAccount without adding or removing application configuration components.
 
-## Lab 22 — Install and Configure an Operator (File Integrity Operator)
+## Lab 22  Install and Configure an Operator (File Integrity Operator)
 
 **Objective:** Install and configure the File Integrity Operator in OpenShift.
 
@@ -1977,21 +2119,21 @@ oc get pods,svc,routes -n production
 **Solution**
 
 ```bash
-# Step 1 — Create the Operator project
+# Step 1  Create the Operator project
 oc new-project openshift-integrity
 
-# Step 2 — Create the project for File Integrity monitoring
+# Step 2  Create the project for File Integrity monitoring
 oc new-project openshift-file-integrity
 
-# Step 3 — Enable cluster monitoring
+# Step 3  Enable cluster monitoring
 oc label namespace openshift-file-integrity \
   openshift.io/cluster-monitoring=true
 ```
 
-**Step 4 — Install the File Integrity Operator**
+**Step 4  Install the File Integrity Operator**
 
 1. Open the OpenShift Web Console.
-2. Navigate to **Ecosystem → Software Catalog (OperatorHub)**.
+2. Navigate to **Ecosystem �� Software Catalog (OperatorHub)**.
 3. Search for `File Integrity Operator`.
 4. Select the Operator and click **Install**.
 5. Configure the installation:
@@ -1999,7 +2141,7 @@ oc label namespace openshift-file-integrity \
    - Update Approval: `Automatic`
 6. Click **Install**.
 
-**Step 5 — Verify the installation**
+**Step 5  Verify the installation**
 
 ```bash
 # Check the Subscription
@@ -2024,7 +2166,7 @@ oc get namespace openshift-file-integrity --show-labels
 - **Cluster monitoring:** Enables monitoring of user workloads in a namespace.
 - **Namespace label:** `openshift.io/cluster-monitoring=true` enables monitoring for the namespace.
 
-## Lab 23 — Networking: Expose Applications through a Secure Route
+## Lab 23  Networking: Expose Applications through a Secure Route
 
 **Objective:** Deploy an application in OpenShift and secure external access using an Edge Route with a CA-signed SSL certificate.
 
@@ -2045,27 +2187,27 @@ oc get namespace openshift-file-integrity --show-labels
 **Solution**
 
 ```bash
-# Step 1 — Create the project
+# Step 1  Create the project
 oc new-project business
 
-# Step 2 — Create the Deployment
+# Step 2  Create the Deployment
 oc create deployment marketing \
   --image=nginxinc/nginx-unprivileged:stable
 
-# Step 3 — Expose the Deployment through a Service
+# Step 3  Expose the Deployment through a Service
 oc expose deployment marketing --port=8080 --target-port=8080
 
-# Step 4 — Create an unsecured Route
+# Step 4  Create an unsecured Route
 oc create route edge marketing-route \
   --service=marketing \
   --port=8080 \
   --hostname=webapplication.apps.domain1.exampledomain.com
 
-# Step 5 — Verify the Route
+# Step 5  Verify the Route
 oc get route marketing-route
 ```
 
-**Step 6 — Generate the SSL certificate**
+**Step 6  Generate the SSL certificate**
 
 Use the provided `cert-manager.sh` script to generate a CA-signed certificate and private key.
 
@@ -2079,18 +2221,18 @@ Check the script's usage instructions to determine the required arguments and ou
 
 For this lab, assume the generated files are:
 
-- `tls.crt` — CA-signed certificate
-- `tls.key` — Private key
+- `tls.crt`  CA-signed certificate
+- `tls.key`  Private key
 
 If the script also provides a CA certificate, keep that file available.
 
-**Step 7 — Configure the Route with a CA-signed certificate using the Web Console**
+**Step 7  Configure the Route with a CA-signed certificate using the Web Console**
 
 1. Log in to the OpenShift Web Console.
 2. Select the `business` project.
-3. Navigate to **Networking → Routes**.
+3. Navigate to **Networking �� Routes**.
 4. Find the Route named `marketing-route`.
-5. Open the Route and select **Actions → Edit Route**.
+5. Open the Route and select **Actions �� Edit Route**.
 6. Locate the **Security** or **TLS Settings** section.
 7. Enable **Secure route**.
 8. Configure the following settings:
@@ -2103,9 +2245,9 @@ If the script also provides a CA certificate, keep that file available.
 13. If the certificate was signed by a separate CA, copy the CA certificate into the **CA Certificate** field.
 14. Save the Route configuration.
 
-**Step 8 — Verify the Route**
+**Step 8  Verify the Route**
 
-Navigate to **Networking → Routes** and open `marketing-route`.
+Navigate to **Networking �� Routes** and open `marketing-route`.
 
 Verify:
 - The Route is secure.
@@ -2113,7 +2255,7 @@ Verify:
 - HTTP traffic is redirected to HTTPS.
 - The Route uses the correct hostname.
 
-**Step 9 — Test HTTPS access**
+**Step 9  Test HTTPS access**
 
 ```bash
 curl -k https://webapplication.apps.domain1.exampledomain.com
@@ -2130,7 +2272,7 @@ Expected result: The Nginx welcome page is returned over HTTPS.
 - **CA-signed certificate:** Certificate signed by a trusted Certificate Authority.
 - **InsecureEdgeTerminationPolicy: Redirect:** Redirects HTTP requests to HTTPS.
 
-## Lab 24 — Automatically Scale an Application (Horizontal Pod Autoscaler)
+## Lab 24  Automatically Scale an Application (Horizontal Pod Autoscaler)
 
 **Objective:** Configure horizontal pod autoscaling (HPA) to automatically scale an application based on CPU utilization.
 
@@ -2148,30 +2290,30 @@ Expected result: The Nginx welcome page is returned over HTTPS.
 **Solution**
 
 ```bash
-# Step 1 — Select an existing project
+# Step 1  Select an existing project
 oc project <project-name>
 
 # Alternatively, create a new project
 oc new-project autoscale-demo
 
-# Step 2 — Create the Deployment
+# Step 2  Create the Deployment
 oc create deployment titan --image=nginxinc/nginx-unprivileged:stable
 
-# Step 3 — Configure CPU requests and limits
+# Step 3  Configure CPU requests and limits
 oc set resources deployment titan \
   --requests=cpu=50m \
   --limits=cpu=250m
 
-# Step 4 — Configure horizontal pod autoscaling
+# Step 4  Configure horizontal pod autoscaling
 oc autoscale deployment titan \
   --min=2 \
   --max=5 \
   --cpu-percent=75
 
-# Step 5 — Verify the Deployment
+# Step 5  Verify the Deployment
 oc get deployment titan
 
-# Step 6 — Verify the HPA
+# Step 6  Verify the HPA
 oc get hpa titan
 
 # View detailed HPA information
@@ -2205,7 +2347,7 @@ The CPU utilization may initially show `<unknown>` while metrics are being colle
 
 ---
 
-## Lab 25 — Configure a Project Template with a LimitRange
+## Lab 25  Configure a Project Template with a LimitRange
 
 **Objective:** Configure OpenShift so that every newly created project automatically receives a LimitRange with predefined memory constraints.
 
@@ -2224,13 +2366,13 @@ The CPU utilization may initially show `<unknown>` while metrics are being colle
 
 **Solution**
 
-**Step 1 — Generate the Project Template**
+**Step 1  Generate the Project Template**
 
 ```bash
 oc adm create-bootstrap-project-template -o yaml > project-template.yaml
 ```
 
-**Step 2 — Edit the Project Template**
+**Step 2  Edit the Project Template**
 
 ```bash
 vi project-template.yaml
@@ -2245,10 +2387,10 @@ metadata:
 
 Do not remove the existing objects or RoleBindings.
 
-**Step 3 — Create the LimitRange using the Web Console**
+**Step 3  Create the LimitRange using the Web Console**
 
 1. Switch to the **Administrator** view.
-2. Navigate to **Administration → Limit Ranges**.
+2. Navigate to **Administration �� Limit Ranges**.
 3. Use the YAML editor to generate a LimitRange.
 4. Configure the following requirements:
 
@@ -2283,7 +2425,7 @@ spec:
 
 Copy this YAML. Do not create the LimitRange directly in the project. It will be added to the Project Template instead.
 
-**Step 4 — Add the LimitRange to the Project Template**
+**Step 4  Add the LimitRange to the Project Template**
 
 Open `project-template.yaml` and find the `objects:` section.
 
@@ -2308,7 +2450,7 @@ Leave the existing RoleBinding objects untouched. Add the LimitRange as another 
         memory: 256Mi
 ```
 
-**Step 5 — Replace the LimitRange name and namespace**
+**Step 5  Replace the LimitRange name and namespace**
 
 Change the LimitRange metadata to use the project name variable:
 
@@ -2341,7 +2483,7 @@ The complete LimitRange object should now look like this:
 
 OpenShift replaces `${PROJECT_NAME}` with the name of the newly created project.
 
-**Step 6 — Save and apply the Project Template**
+**Step 6  Save and apply the Project Template**
 
 ```bash
 oc apply -f project-template.yaml -n openshift-config
@@ -2355,7 +2497,7 @@ oc get templates -n openshift-config
 
 The template should be named `project-request`.
 
-**Step 7 — Configure OpenShift to use the Project Template**
+**Step 7  Configure OpenShift to use the Project Template**
 
 Edit the cluster project configuration:
 
@@ -2381,7 +2523,7 @@ Save and exit.
 
 This instructs OpenShift to use the `project-request` template whenever a new project is created through the project request mechanism.
 
-**Step 8 — Monitor the OpenShift API Server pods**
+**Step 8  Monitor the OpenShift API Server pods**
 
 The configuration change may trigger an update of the OpenShift API Server. Monitor the pods:
 
@@ -2391,13 +2533,13 @@ oc get pods -n openshift-apiserver -w
 
 Wait until the API Server pods are running and ready again. Press `Ctrl+C` to stop monitoring.
 
-**Step 9 — Create a new test project**
+**Step 9  Create a new test project**
 
 ```bash
 oc new-project sample-project
 ```
 
-**Step 10 — Verify the automatically created LimitRange**
+**Step 10  Verify the automatically created LimitRange**
 
 ```bash
 oc get limitrange
@@ -2453,7 +2595,7 @@ Verify the following values:
 5. Configure `projectRequestTemplate`.
 6. Create a new project and verify the result.
 
-## Lab 26 — Configure Network Policies
+## Lab 26  Configure Network Policies
 
 **Objective:** Configure network traffic restrictions between OpenShift projects using NetworkPolicies.
 
@@ -2481,15 +2623,15 @@ Use the separate setup script to prepare the frontend and backend projects and d
 
 **Solution**
 
-**Step 1 — Open the OpenShift Web Console**
+**Step 1  Open the OpenShift Web Console**
 
 1. Log in to the OpenShift Web Console.
 2. Switch to the **Administrator** perspective.
-3. Navigate to **Networking → NetworkPolicies**.
+3. Navigate to **Networking �� NetworkPolicies**.
 4. Select the `backend` project.
 5. Click **Create NetworkPolicy**.
 
-**Step 2 — Create the NetworkPolicy**
+**Step 2  Create the NetworkPolicy**
 
 Configure the following:
 
@@ -2500,7 +2642,7 @@ Configure the following:
 | Policy type | Ingress |
 | Pod selector | `network.openshift.io/policy-group=backend` |
 
-**Step 3 — Configure the Ingress rule**
+**Step 3  Configure the Ingress rule**
 
 Configure the source selectors:
 
@@ -2525,15 +2667,15 @@ Configure the allowed port:
 
 Save the NetworkPolicy.
 
-**Step 4 — Verify the configuration**
+**Step 4  Verify the configuration**
 
-Navigate to **Networking → NetworkPolicies** in the `backend` project and inspect `db-allow-conn`.
+Navigate to **Networking �� NetworkPolicies** in the `backend` project and inspect `db-allow-conn`.
 
 Verify that the Pod selector, namespace selector, Pod selector and port match the task requirements.
 
-**Step 5 — Verify application connectivity**
+**Step 5  Verify application connectivity**
 
-1. Navigate to **Workloads → Deployments**.
+1. Navigate to **Workloads �� Deployments**.
 2. Select project `frontend`.
 3. Open Deployment `frontend-checker`.
 4. Open its Pod.
@@ -2563,7 +2705,7 @@ oc logs deployment/frontend-checker -n frontend
 
 ---
 
-### Appendix — Cleanup script
+### Appendix  Cleanup script
 
 Save as `cleanup-network-policy-lab.sh`.
 
@@ -2586,7 +2728,7 @@ Run:
 chmod +x cleanup-network-policy-lab.sh
 ./cleanup-network-policy-lab.sh
 ```
-## Lab 27 — Configure Liveness Probes
+## Lab 27  Configure Liveness Probes
 
 **Objective:** Configure a liveness probe for an existing application Deployment in OpenShift.
 
@@ -2603,13 +2745,13 @@ Configure a liveness probe for this container with the following requirements:
 
 **Solution**
 
-**Step 1 — Select the project**
+**Step 1  Select the project**
 
 ```bash
 oc project crt-kubernetesway-dev
 ```
 
-**Step 2 — Configure the liveness probe**
+**Step 2  Configure the liveness probe**
 
 ```bash
 oc set probe deployment/cart \
@@ -2619,7 +2761,7 @@ oc set probe deployment/cart \
   --open-tcp=8080
 ```
 
-**Step 3 — Verify the configuration**
+**Step 3  Verify the configuration**
 
 ```bash
 oc get deployment cart -o yaml
