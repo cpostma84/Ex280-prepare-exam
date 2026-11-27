@@ -55,18 +55,21 @@ The existing Labs 1–27 already cover several of the EX280 objectives. The list
 
 ### Declarative Resource Management
 
+<a id="lab-28-kustomize-base-resources"></a>
 ## Lab 28  Kustomize: Base Resources
 - Create a Kustomize base with a Deployment and Service.
 - Add resources through `kustomization.yaml`.
 - Build and apply the base with `oc kustomize` and `oc apply -k`.
 - Verify the generated resources.
 
+<a id="lab-29-kustomize-overlays-and-patches"></a>
 ## Lab 29  Kustomize: Overlays and Patches
 - Create separate development and production overlays.
 - Change replica counts, image tags, labels and namespaces per overlay.
 - Use patches to modify the base resources.
 - Build and apply each overlay.
 
+<a id="lab-30-import-export-and-configure-kubernetes-resources"></a>
 ## Lab 30  Import, Export and Configure Kubernetes Resources
 - Export existing resources to YAML.
 - Edit exported manifests.
@@ -75,12 +78,14 @@ The existing Labs 1–27 already cover several of the EX280 objectives. The list
 
 ### Images and Resource Queries
 
+<a id="lab-31-locate-and-examine-container-images"></a>
 ## Lab 31  Locate and Examine Container Images
 - Locate images available from the configured image registries.
 - Inspect image metadata.
 - Identify and compare image tags and digests.
 - Understand the difference between a mutable tag and an immutable digest.
 
+<a id="lab-32-query-format-and-filter-kubernetes-resources"></a>
 ## Lab 32  Query, Format and Filter Kubernetes Resources
 - Query resources with label and field selectors.
 - Format output as YAML, JSON, wide output and custom columns.
@@ -89,18 +94,21 @@ The existing Labs 1–27 already cover several of the EX280 objectives. The list
 
 ### Cluster Administration and Troubleshooting
 
+<a id="lab-33-cluster-health-status-events-and-alerts"></a>
 ## Lab 33  Cluster Health, Status, Events and Alerts
 - Examine nodes and cluster operators.
 - Check cluster version and cluster status.
 - Inspect events across namespaces.
 - Review monitoring alerts and identify their affected resources.
 
+<a id="lab-34-logs-and-containerpod-troubleshooting"></a>
 ## Lab 34  Logs and Container/Pod Troubleshooting
 - Inspect current and previous container logs.
 - Investigate pod events and describe output.
 - Diagnose common container and pod startup failures.
 - Use resource status and logs to identify the cause of a failure.
 
+<a id="lab-35-use-openshift-product-documentation"></a>
 ## Lab 35  Use OpenShift Product Documentation
 - Find the relevant OpenShift product documentation for a task.
 - Locate command references and resource examples.
@@ -109,30 +117,35 @@ The existing Labs 1–27 already cover several of the EX280 objectives. The list
 
 ### Networking
 
+<a id="lab-36-ingress-controller-and-cluster-network-ingress"></a>
 ## Lab 36  Ingress Controller and Cluster Network Ingress
 - Inspect the available Ingress Controllers.
 - Examine the default ingress configuration.
 - Review how Routes are admitted by the ingress controller.
 - Configure and verify the cluster ingress settings required by the task.
 
+<a id="lab-37-software-defined-networking-and-network-troubleshooting"></a>
 ## Lab 37  Software Defined Networking and Network Troubleshooting
 - Inspect network-related cluster resources and events.
 - Troubleshoot connectivity between Pods and Services.
 - Check DNS resolution, Service selectors and Endpoints.
 - Investigate common software-defined networking symptoms.
 
+<a id="lab-38-tls-for-external-and-internal-application-traffic"></a>
 ## Lab 38  TLS for External and Internal Application Traffic
 - Review the existing Edge Route exercise in Lab 23.
 - Configure and compare Edge, Re-encrypt and Passthrough Route termination.
 - Use certificates and secrets for TLS.
 - Verify where TLS is terminated and whether traffic from the router to the application is encrypted.
 
+<a id="lab-39-configure-a-loadbalancer-service"></a>
 ## Lab 39  Configure a LoadBalancer Service
 - Create a Service of type `LoadBalancer`.
 - Inspect its external address and status.
 - Verify access to the application.
 - Compare LoadBalancer with ClusterIP and NodePort service types.
 
+<a id="lab-40-expose-non-http-applications-with-sni"></a>
 ## Lab 40  Expose Non-HTTP Applications with SNI
 - Deploy a non-HTTP application.
 - Expose it using the supported OpenShift routing/SNI mechanism.
@@ -141,12 +154,14 @@ The existing Labs 1–27 already cover several of the EX280 objectives. The list
 
 ### Operators and Application Security
 
+<a id="lab-41-operator-lifecycle-uninstall-and-delete"></a>
 ## Lab 41  Operator Lifecycle: Uninstall and Delete
 - Inspect an installed Operator, its Subscription and ClusterServiceVersion.
 - Uninstall the Operator.
 - Remove the Subscription and related resources where appropriate.
 - Verify which resources remain and clean them up safely.
 
+<a id="lab-42-run-privileged-applications-and-manage-scc"></a>
 ## Lab 42  Run Privileged Applications and Manage SCC
 - Inspect available Security Context Constraints.
 - Compare `anyuid` and `privileged` SCC permissions.
@@ -154,6 +169,7 @@ The existing Labs 1–27 already cover several of the EX280 objectives. The list
 - Deploy and verify an application that requires the privileged SCC.
 - Remove the permission after the exercise.
 
+<a id="lab-43-configure-application-access-to-kubernetes-apis"></a>
 ## Lab 43  Configure Application Access to Kubernetes APIs
 - Create and configure a ServiceAccount.
 - Grant only the required Role or ClusterRole permissions.
@@ -163,6 +179,7 @@ The existing Labs 1–27 already cover several of the EX280 objectives. The list
 
 ### Scheduled Workloads
 
+<a id="lab-44-create-and-manage-kubernetes-cronjobs"></a>
 ## Lab 44  Create and Manage Kubernetes CronJobs
 - Create a CronJob with a specified schedule.
 - Configure the Job template and concurrency policy.
@@ -192,6 +209,7 @@ The web console is already used in Labs 22, 23, 25 and 26. The additional consol
 
 ---
 
+<a id="lab-1-htpasswd-identity-provider"></a>
 ## Lab 1  HTPasswd Identity Provider
 
 **Objective:** Configure HTPasswd as an identity provider and manage users
@@ -262,6 +280,7 @@ oc get identities
 
 ---
 
+<a id="lab-2-managing-users"></a>
 ## Lab 2  Managing Users
 
 **Objective:** Remove a user and change a user password
@@ -326,6 +345,7 @@ oc login -u alice -p password
 
 ---
 
+<a id="lab-3-managing-groups"></a>
 ## Lab 3  Managing Groups
 
 **Objective:** Create groups, assign users and manage group permissions
@@ -367,6 +387,7 @@ oc get rolebindings -n manage-groups
 
 ---
 
+<a id="lab-4-rbac-and-permissions"></a>
 ## Lab 4  RBAC and Permissions
 
 **Objective:** Manage cluster roles, project roles and self-provisioner permissions
@@ -542,6 +563,7 @@ oc adm policy who-can create deployments -n avalon | grep alice
 
 ---
 
+<a id="lab-5-custom-roles"></a>
 ## Lab 5  Custom Roles
 
 **Objective:** Create a custom role and assign it to a user
@@ -571,6 +593,7 @@ oc get rolebindings -n nagas
 
 ---
 
+<a id="lab-6-resource-quota"></a>
 ## Lab 6  Resource Quota
 
 **Objective:** Create a ResourceQuota for the neptune project
@@ -598,6 +621,7 @@ oc describe quota neptune-quota -n neptune
 
 ---
 
+<a id="lab-7-limit-range"></a>
 ## Lab 7  LimitRange
 
 **Task details:**
@@ -631,6 +655,7 @@ oc describe limitrange avalon-limits
 
 ---
 
+<a id="lab-8-deploy-from-resource-manifests"></a>
 ## Lab 8  Deploy from Resource Manifests
 
 **Objective:** Deploy and manage an application using YAML manifests
@@ -688,6 +713,7 @@ oc delete -f webserver.yaml
 
 ---
 
+<a id="lab-9-deploy-from-images-templates-and-helm-charts"></a>
 ## Lab 9  Deploy from Images, Templates and Helm Charts
 
 **Objective**
@@ -789,6 +815,7 @@ helm uninstall example-app
 
 ---
 
+<a id="lab-10-deploy-jobs-for-one-time-tasks"></a>
 ## Lab 10  Deploy Jobs for One-time Tasks
 
 **Objective:** Create and manage a Job in OpenShift for a one-time task.
@@ -861,6 +888,7 @@ oc delete job one-time-task
 ```
 
 ---
+<a id="lab-11-manage-application-deployments"></a>
 ## Lab 11  Manage Application Deployments
 
 **Objective:** Deploy, update, scale, rollback and monitor an application deployment
@@ -962,6 +990,7 @@ oc apply -f httpd-deployment.yaml
 
 ---
 
+<a id="lab-12-replicasets"></a>
 ## Lab 12  ReplicaSets
 
 **Objective:** Understand and manage ReplicaSets in OpenShift
@@ -1061,6 +1090,7 @@ oc delete rs my-replicaset
 
 ---
 
+<a id="lab-13-labels-and-selectors"></a>
 ## Lab 13  Labels and Selectors
 
 **Objective:** Assign labels to resources, query with selectors and manage labels dynamically
@@ -1157,6 +1187,7 @@ oc describe pod my-labeled-pod | grep Labels
 
 ---
 
+<a id="lab-14-configure-services"></a>
 ## Lab 14  Configure Services
 
 **Objective:** Deploy an application, expose it as a service and create a route for external access
@@ -1205,6 +1236,7 @@ curl http://my-app.httpdemo.apps-crc.testing
 ```
 
 ---
+<a id="lab-15-manage-secrets"></a>
 ## Lab 15  Manage Secrets
 
 **Objective:** Create, inspect and use OpenShift Secrets to securely manage sensitive application data
@@ -1385,6 +1417,7 @@ Base64
 
 ---
 
+<a id="lab-16-manage-configuration-maps"></a>
 ## Lab 16  Manage Configuration Maps
 
 **Objective:** Create and use OpenShift ConfigMaps to manage non-sensitive application configuration
@@ -1495,6 +1528,7 @@ Base64
 
 ---
 
+<a id="lab-17-mount-storage-pv-pvc-deployment-route"></a>
 ## Lab 17  Mount Storage (PV, PVC, Deployment & Route)
 
 **Objective:** Create and use persistent storage with PersistentVolumes (PV), PersistentVolumeClaims (PVC), Deployments and Routes in OpenShift using an NFS backend.
@@ -1666,6 +1700,7 @@ HTTP/1.1 200 OK
 
 ---
 
+<a id="lab-18-storage-classes"></a>
 ## Lab 18  Storage Classes
 
 **Objective:** Use StorageClasses to dynamically provision persistent storage in OpenShift
@@ -1797,6 +1832,7 @@ Dynamic provisioning
 
 ---
 
+<a id="lab-19-statefulsets"></a>
 ## Lab 19  StatefulSets
 
 **Objective:** Deploy and manage stateful applications using StatefulSets with stable identities and dedicated persistent storage
@@ -1957,6 +1993,7 @@ StatefulSet
     �� Dedicated storage per Pod
 ```
 
+<a id="lab-20-mount-storage-pv-and-pvc"></a>
 ## Lab 20  Mount Storage  PV and PVC
 
 ## Task
@@ -2064,6 +2101,7 @@ oc get svc
 oc get route
 ```
 
+<a id="lab-21-serviceaccounts-and-scc"></a>
 ## Lab 21  ServiceAccounts and SCC
 
 **Objective:** Configure a ServiceAccount with permission to run Pods as any user and deploy an application using that ServiceAccount.
@@ -2105,6 +2143,7 @@ oc get pods,svc,routes -n production
 
 **Success criteria:** The `redhat-sa` ServiceAccount exists, is allowed to use `anyuid`, and the existing `team` Deployment uses that ServiceAccount without adding or removing application configuration components.
 
+<a id="lab-22-install-and-configure-an-operator-file-integrity-operator"></a>
 ## Lab 22  Install and Configure an Operator (File Integrity Operator)
 
 **Objective:** Install and configure the File Integrity Operator in OpenShift.
@@ -2166,6 +2205,7 @@ oc get namespace openshift-file-integrity --show-labels
 - **Cluster monitoring:** Enables monitoring of user workloads in a namespace.
 - **Namespace label:** `openshift.io/cluster-monitoring=true` enables monitoring for the namespace.
 
+<a id="lab-23-networking-expose-applications-through-a-secure-route"></a>
 ## Lab 23  Networking: Expose Applications through a Secure Route
 
 **Objective:** Deploy an application in OpenShift and secure external access using an Edge Route with a CA-signed SSL certificate.
@@ -2272,6 +2312,7 @@ Expected result: The Nginx welcome page is returned over HTTPS.
 - **CA-signed certificate:** Certificate signed by a trusted Certificate Authority.
 - **InsecureEdgeTerminationPolicy: Redirect:** Redirects HTTP requests to HTTPS.
 
+<a id="lab-24-automatically-scale-an-application-horizontal-pod-autoscaler"></a>
 ## Lab 24  Automatically Scale an Application (Horizontal Pod Autoscaler)
 
 **Objective:** Configure horizontal pod autoscaling (HPA) to automatically scale an application based on CPU utilization.
@@ -2347,6 +2388,7 @@ The CPU utilization may initially show `<unknown>` while metrics are being colle
 
 ---
 
+<a id="lab-25-configure-a-project-template-with-a-limitrange"></a>
 ## Lab 25  Configure a Project Template with a LimitRange
 
 **Objective:** Configure OpenShift so that every newly created project automatically receives a LimitRange with predefined memory constraints.
@@ -2595,6 +2637,7 @@ Verify the following values:
 5. Configure `projectRequestTemplate`.
 6. Create a new project and verify the result.
 
+<a id="lab-26-configure-network-policies"></a>
 ## Lab 26  Configure Network Policies
 
 **Objective:** Configure network traffic restrictions between OpenShift projects using NetworkPolicies.
@@ -2728,6 +2771,7 @@ Run:
 chmod +x cleanup-network-policy-lab.sh
 ./cleanup-network-policy-lab.sh
 ```
+<a id="lab-27-configure-liveness-probes"></a>
 ## Lab 27  Configure Liveness Probes
 
 **Objective:** Configure a liveness probe for an existing application Deployment in OpenShift.
